@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MCP, MCPTool, MCPResource } from '@/lib/types/mcp';
+import { API } from '@/lib/types/api';
 import ToolsSection from './tools-section';
 import ResourcesSection from './resources-section';
 
@@ -10,6 +11,7 @@ interface MCPDetailProps {
   mcp: MCP;
   initialTools: MCPTool[];
   initialResources: MCPResource[];
+  apis: API[];
   error: string | null;
 }
 
@@ -17,6 +19,7 @@ export default function MCPDetail({
   mcp,
   initialTools,
   initialResources,
+  apis,
   error,
 }: MCPDetailProps) {
   const [tools, setTools] = useState<MCPTool[]>(initialTools);
@@ -60,7 +63,7 @@ export default function MCPDetail({
         </div>
       )}
 
-      <ToolsSection mcpId={mcp.id} initialTools={tools} onUpdate={handleToolsUpdate} />
+      <ToolsSection mcpId={mcp.id} initialTools={tools} apis={apis} onUpdate={handleToolsUpdate} />
       <ResourcesSection
         mcpId={mcp.id}
         initialResources={resources}
