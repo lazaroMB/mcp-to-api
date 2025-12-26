@@ -1,8 +1,9 @@
 import { getAPIs } from './actions';
 import APIsList from './apis-list';
+import { API } from '@/lib/types/api';
 
 export default async function APIPage() {
-  let apis = [];
+  let apis: API[] = [];
   let error = null;
 
   try {
