@@ -155,6 +155,7 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
         description: tool.description,
         input_schema: tool.input_schema,
         uri: tool.uri,
+        is_enabled: tool.is_enabled,
       },
       mapping: null,
       api: null,
@@ -180,6 +181,7 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
         description: tool.description,
         input_schema: tool.input_schema,
         uri: tool.uri,
+        is_enabled: tool.is_enabled,
       },
       mapping: {
         id: mapping.id,
@@ -203,6 +205,7 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
       description: tool.description,
       input_schema: tool.input_schema,
       uri: tool.uri,
+      is_enabled: tool.is_enabled,
     },
     mapping: {
       id: mapping.id,
@@ -224,6 +227,7 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
       cookies: api.cookies,
       url_params: api.url_params,
       payload_schema: api.payload_schema,
+      is_enabled: api.is_enabled,
     },
   };
 }

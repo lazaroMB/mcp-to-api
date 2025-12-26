@@ -5,12 +5,17 @@ import Link from 'next/link';
 import { MCP, MCPTool } from '@/lib/types/mcp';
 import { API } from '@/lib/types/api';
 import ToolsSection from './tools-section';
+import ToolStatisticsSection from './tool-statistics-section';
+import { ToolStatistics, MCPStatistics } from './statistics-types';
 
 interface MCPDetailProps {
   mcp: MCP;
   initialTools: MCPTool[];
   apis: API[];
   error: string | null;
+  toolStats: ToolStatistics[] | null;
+  mcpStats: MCPStatistics | null;
+  timeRange: '24h' | '7d' | '30d' | 'all';
 }
 
 export default function MCPDetail({
@@ -18,6 +23,9 @@ export default function MCPDetail({
   initialTools,
   apis,
   error,
+  toolStats,
+  mcpStats,
+  timeRange,
 }: MCPDetailProps) {
   const [tools, setTools] = useState<MCPTool[]>(initialTools);
 
@@ -53,6 +61,16 @@ export default function MCPDetail({
         <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
           {error}
         </div>
+      )}
+
+      {/* Statistics Section */}
+      {toolStats && mcpStats && (
+        <ToolStatisticsSection
+          mcpId={mcp.id}
+          toolStats={toolStats}
+          mcpStats={mcpStats}
+          timeRange={timeRange}
+        />
       )}
 
       <ToolsSection mcpId={mcp.id} initialTools={tools} apis={apis} onUpdate={handleToolsUpdate} />

@@ -5,7 +5,9 @@ import { transformToolArgsToAPIPayload } from '@/lib/mcp/transformer';
 import { callMappedAPI } from '@/lib/mcp/api-client';
 import { getDynamicCapabilities } from '@/lib/mcp/capabilities';
 import { validateAndNormalizeInputSchema } from '@/lib/mcp/schema-validator';
+import { trackToolUsage } from '@/lib/mcp/statistics';
 import { 
+  MCPInitializeRequest,
   MCPInitializeResponse, 
   JSONRPCRequest, 
   JSONRPCResponse,
@@ -109,6 +111,10 @@ export async function POST(
     // Handle tools/call
     if (body.method === 'tools/call') {
       const toolRequest = body.params as MCPCallToolRequest;
+      const startTime = Date.now();
+      const clientIp = request.headers.get('x-forwarded-for') || 
+                       request.headers.get('x-real-ip') || 
+                       'unknown';
 
       if (!toolRequest?.name) {
         const errorId = body.id !== null && body.id !== undefined ? body.id : '1';
@@ -120,6 +126,21 @@ export async function POST(
             message: 'Tool name is required',
           },
         };
+        // Track failed call (no tool data available)
+        const mcp = await getMCPBySlug(slug);
+        if (mcp) {
+          trackToolUsage({
+            mcpToolId: '', // No tool ID available
+            mcpId: mcp.id,
+            toolName: toolRequest?.name || 'unknown',
+            requestArguments: toolRequest?.arguments || {},
+            success: false,
+            responseStatus: 400,
+            responseTimeMs: Date.now() - startTime,
+            errorMessage: 'Tool name is required',
+            clientIp,
+          });
+        }
         return NextResponse.json(errorResponse, { status: 400 });
       }
 
@@ -135,6 +156,21 @@ export async function POST(
             message: `Tool "${toolRequest.name}" not found in MCP "${slug}"`,
           },
         };
+        // Track failed call (tool not found)
+        const mcp = await getMCPBySlug(slug);
+        if (mcp) {
+          trackToolUsage({
+            mcpToolId: '', // No tool ID available
+            mcpId: mcp.id,
+            toolName: toolRequest.name,
+            requestArguments: toolRequest.arguments || {},
+            success: false,
+            responseStatus: 404,
+            responseTimeMs: Date.now() - startTime,
+            errorMessage: `Tool "${toolRequest.name}" not found in MCP "${slug}"`,
+            clientIp,
+          });
+        }
         return NextResponse.json(errorResponse, { status: 404 });
       }
 
@@ -162,6 +198,18 @@ export async function POST(
             },
           },
         };
+        // Track failed call (no mapping configured)
+        trackToolUsage({
+          mcpToolId: tool.id,
+          mcpId: tool.mcp_id,
+          toolName: toolRequest.name,
+          requestArguments: toolRequest.arguments || {},
+          success: false,
+          responseStatus: 400,
+          responseTimeMs: Date.now() - startTime,
+          errorMessage: `Tool "${toolRequest.name}" has no API mapping configured`,
+          clientIp,
+        });
         return NextResponse.json(errorResponse, { status: 400 });
       }
 
@@ -191,6 +239,19 @@ export async function POST(
                 },
               },
             };
+            // Track failed call (missing required params)
+            trackToolUsage({
+              mcpToolId: tool.id,
+              mcpId: tool.mcp_id,
+              toolName: toolRequest.name,
+              requestArguments: toolRequest.arguments || {},
+              success: false,
+              responseStatus: 400,
+              responseTimeMs: Date.now() - startTime,
+              errorMessage: `Missing required parameters: ${missingRequired.join(', ')}`,
+              apiId: api?.id,
+              clientIp,
+            });
             return NextResponse.json(errorResponse, { status: 400 });
           }
         }
@@ -219,6 +280,19 @@ export async function POST(
               },
             },
           };
+          // Track failed call (unknown arguments)
+          trackToolUsage({
+            mcpToolId: tool.id,
+            mcpId: tool.mcp_id,
+            toolName: toolRequest.name,
+            requestArguments: toolRequest.arguments || {},
+            success: false,
+            responseStatus: 400,
+            responseTimeMs: Date.now() - startTime,
+            errorMessage: `Unknown arguments: ${unknownArgs.join(', ')}`,
+            apiId: api.id,
+            clientIp,
+          });
           return NextResponse.json(errorResponse, { status: 400 });
         }
       }
@@ -238,6 +312,19 @@ export async function POST(
             },
           },
         };
+        // Track failed call (tool doesn't accept params)
+        trackToolUsage({
+          mcpToolId: tool.id,
+          mcpId: tool.mcp_id,
+          toolName: toolRequest.name,
+          requestArguments: toolRequest.arguments || {},
+          success: false,
+          responseStatus: 400,
+          responseTimeMs: Date.now() - startTime,
+          errorMessage: 'Tool does not accept parameters',
+          apiId: api.id,
+          clientIp,
+        });
         return NextResponse.json(errorResponse, { status: 400 });
       }
 
@@ -259,14 +346,31 @@ export async function POST(
         payload: apiPayload,
       });
       
+      const responseTime = Date.now() - startTime;
+      const isSuccess = apiResponse.status >= 200 && apiResponse.status < 300;
+      
       console.log(`[MCP Tool Call] API Response Status:`, apiResponse.status);
       console.log(`[MCP Tool Call] API Response Data:`, apiResponse.data);
+
+      // Track tool usage (both success and failure)
+      trackToolUsage({
+        mcpToolId: tool.id,
+        mcpId: tool.mcp_id,
+        toolName: toolRequest.name,
+        requestArguments: toolArguments,
+        success: isSuccess,
+        responseStatus: apiResponse.status,
+        responseTimeMs: responseTime,
+        apiId: api.id,
+        errorMessage: !isSuccess ? (apiResponse.data?.message || `HTTP ${apiResponse.status}`) : null,
+        clientIp,
+      });
 
       // Return the full API response as a proxy
       // Always return the complete API response including status, headers, and data
       const fullResponse = {
         status: apiResponse.status,
-        statusText: apiResponse.status >= 200 && apiResponse.status < 300 ? 'OK' : 'Error',
+        statusText: isSuccess ? 'OK' : 'Error',
         headers: apiResponse.headers,
         data: apiResponse.data,
       };
@@ -279,7 +383,7 @@ export async function POST(
             text: JSON.stringify(fullResponse, null, 2),
           },
         ],
-        isError: apiResponse.status >= 400,
+        isError: !isSuccess,
       };
 
       const responseId = body.id !== null && body.id !== undefined ? body.id : '1';

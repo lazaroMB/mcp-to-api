@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { MCPTool } from '@/lib/types/mcp';
 import ToolForm from './tool-form';
 import ToolMappingSection from './tool-mapping-section';
-import { MCPToolAPIMapping, API } from '@/lib/types/mapping';
+import { MCPToolAPIMapping } from '@/lib/types/mapping';
+import { API } from '@/lib/types/api';
 
 interface ToolsSectionProps {
   mcpId: string;

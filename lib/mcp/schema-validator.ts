@@ -72,7 +72,6 @@ export function validateAndNormalizeInputSchema(schema: any): SchemaValidationRe
 
   // Ensure type is "object"
   normalized = {
-    type: 'object',
     ...schema,
     type: 'object', // Force type to be "object"
   };

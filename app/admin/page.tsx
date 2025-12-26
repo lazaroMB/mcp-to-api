@@ -1,4 +1,17 @@
-export default function AdminDashboard() {
+import { getDashboardStatistics } from './mcps/statistics-actions';
+import type { DashboardStatistics } from './mcps/statistics-types';
+import StatisticsCards from './statistics-cards';
+
+export default async function AdminDashboard() {
+  let stats;
+  let error = null;
+
+  try {
+    stats = await getDashboardStatistics('all');
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Failed to load statistics';
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -11,56 +24,32 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Users"
-          value="1,234"
-          change="+12%"
-          changeType="positive"
-        />
-        <StatCard
-          title="Active Sessions"
-          value="567"
-          change="+5%"
-          changeType="positive"
-        />
-        <StatCard
-          title="Revenue"
-          value="$12,345"
-          change="-2%"
-          changeType="negative"
-        />
-        <StatCard
-          title="Orders"
-          value="89"
-          change="+23%"
-          changeType="positive"
-        />
-      </div>
-
-      {/* Recent Activity */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 text-xl font-semibold text-black dark:text-zinc-50">
-          Recent Activity
-        </h2>
-        <div className="space-y-4">
-          <ActivityItem
-            title="New user registered"
-            description="john.doe@example.com"
-            time="2 minutes ago"
-          />
-          <ActivityItem
-            title="Order completed"
-            description="Order #12345"
-            time="15 minutes ago"
-          />
-          <ActivityItem
-            title="System backup completed"
-            description="All systems operational"
-            time="1 hour ago"
-          />
+      {error ? (
+        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
+          {error}
         </div>
-      </div>
+      ) : stats ? (
+        <StatisticsCards stats={stats} />
+      ) : null}
+
+      {/* Top Tools */}
+      {stats && stats.topTools.length > 0 && (
+        <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="mb-4 text-xl font-semibold text-black dark:text-zinc-50">
+            Most Used Tools
+          </h2>
+          <div className="space-y-4">
+            {stats.topTools.map((tool, index) => (
+              <ActivityItem
+                key={index}
+                title={tool.toolName}
+                description={`${tool.mcpName} • ${tool.callCount.toLocaleString()} calls`}
+                time={`#${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

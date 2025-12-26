@@ -51,3 +51,20 @@ export interface MCPResourceFormData {
   mime_type: string;
   tool_id: string | null;
 }
+
+export interface MCPToolUsageStats {
+  id: string;
+  mcp_tool_id: string;
+  mcp_id: string;
+  user_id: string | null;
+  tool_name: string;
+  request_timestamp: string;
+  request_arguments: Record<string, any> | null;
+  success: boolean;
+  response_status: number | null;
+  response_time_ms: number;
+  error_message: string | null;
+  api_id: string | null;
+  client_ip: string | null;
+  created_at: string;
+}

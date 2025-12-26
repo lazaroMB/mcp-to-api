@@ -1,8 +1,9 @@
 import { getMCPs } from './actions';
 import MCPsList from './mcps-list';
+import { MCP } from '@/lib/types/mcp';
 
 export default async function MCPsPage() {
-  let mcps = [];
+  let mcps: MCP[] = [];
   let error = null;
 
   try {
