@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/api';
 
 export interface ToolUsageStats {
   mcpToolId: string;
@@ -18,25 +18,33 @@ export interface ToolUsageStats {
 /**
  * Track tool usage statistics
  * This function is non-blocking and will not throw errors to avoid breaking the main flow
- * Uses a database function with SECURITY DEFINER to bypass RLS
+ * Uses service role key to bypass RLS for statistics tracking
  */
 export async function trackToolUsage(stats: ToolUsageStats) {
   try {
-    // Use regular client - the database function will handle RLS bypass
-    const supabase = await createClient();
+    // Use service role client to bypass RLS for statistics tracking
+    const supabase = createServiceRoleClient();
     
-    const { error } = await supabase.rpc('insert_mcp_tool_usage_stat', {
-      p_mcp_tool_id: stats.mcpToolId || null,
-      p_mcp_id: stats.mcpId,
-      p_tool_name: stats.toolName,
-      p_request_arguments: stats.requestArguments || null,
-      p_success: stats.success,
-      p_response_status: stats.responseStatus || null,
-      p_response_time_ms: stats.responseTimeMs,
-      p_api_id: stats.apiId || null,
-      p_error_message: stats.errorMessage || null,
-      p_client_ip: stats.clientIp || null,
-    });
+    // Insert directly into the statistics table
+    // Convert empty strings to null for UUID fields
+    const mcpToolId = stats.mcpToolId && stats.mcpToolId.trim() !== '' ? stats.mcpToolId : null;
+    const apiId = stats.apiId && stats.apiId.trim() !== '' ? stats.apiId : null;
+    
+    const { error } = await supabase
+      .from('mcp_tool_usage_stats')
+      .insert({
+        mcp_tool_id: mcpToolId,
+        mcp_id: stats.mcpId,
+        tool_name: stats.toolName,
+        request_arguments: stats.requestArguments || null,
+        success: stats.success,
+        response_status: stats.responseStatus || null,
+        response_time_ms: stats.responseTimeMs,
+        api_id: apiId,
+        error_message: stats.errorMessage || null,
+        client_ip: stats.clientIp || null,
+        request_timestamp: new Date().toISOString(),
+      });
 
     if (error) {
       console.error('Failed to track tool usage:', error);

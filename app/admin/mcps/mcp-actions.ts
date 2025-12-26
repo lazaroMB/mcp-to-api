@@ -1,12 +1,13 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/api';
 import { MCP, MCPTool, MCPResource } from '@/lib/types/mcp';
 import { MCPToolAPIMapping } from '@/lib/types/mapping';
 import { API } from '@/lib/types/api';
 
 export async function getMCPBySlug(slug: string): Promise<MCP | null> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from('mcp')
     .select('*')
@@ -30,7 +31,7 @@ export async function getMCPBySlug(slug: string): Promise<MCP | null> {
 }
 
 export async function getMCPToolsBySlug(slug: string): Promise<MCPTool[]> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from('mcp')
     .select(`
@@ -67,7 +68,7 @@ export async function getMCPToolsBySlug(slug: string): Promise<MCPTool[]> {
 }
 
 export async function getMCPToolByName(slug: string, toolName: string): Promise<MCPTool | null> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from('mcp')
     .select(`
@@ -110,7 +111,7 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
   mapping: MCPToolAPIMapping | null;
   api: API | null;
 } | null> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   
   // First, get the MCP (only if enabled)
   const { data: mcp, error: mcpError } = await supabase
