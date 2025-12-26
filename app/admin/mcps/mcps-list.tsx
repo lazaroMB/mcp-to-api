@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { MCP } from '@/lib/types/mcp';
 import MCPForm from './mcp-form';
 
@@ -132,6 +133,12 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
                     </td>
                     <td className="px-6 py-4 text-right text-sm">
                       <div className="flex items-center justify-end gap-3">
+                        <Link
+                          href={`/admin/mcps/${mcp.id}`}
+                          className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
+                        >
+                          Configure
+                        </Link>
                         <button
                           onClick={() => handleEdit(mcp)}
                           className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
