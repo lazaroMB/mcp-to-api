@@ -9,6 +9,7 @@ export default function AdminNav() {
   const navItems = [
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/mcps", label: "MCP's" },
+    { href: "/admin/api", label: "API" },
   ];
 
   return (
