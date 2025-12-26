@@ -17,6 +17,7 @@ export interface API {
   cookies: KeyValuePair[];
   url_params: KeyValuePair[];
   payload_schema: Record<string, any> | null;
+  is_enabled: boolean;
 }
 
 export interface APIFormData {
@@ -28,4 +29,5 @@ export interface APIFormData {
   cookies: KeyValuePair[];
   url_params: KeyValuePair[];
   payload_schema: Record<string, any> | null;
+  is_enabled: boolean;
 }

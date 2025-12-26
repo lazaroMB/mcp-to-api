@@ -9,6 +9,7 @@ export async function getAPIs(): Promise<API[]> {
   await requireAuth();
   const supabase = await createClient();
   // RLS will automatically filter by user_id
+  // Note: We don't filter by is_enabled here because admins should see all APIs
   const { data, error } = await supabase
     .from('api')
     .select('*')
@@ -56,6 +57,7 @@ export async function createAPI(formData: APIFormData): Promise<API> {
       cookies: formData.cookies || [],
       url_params: formData.url_params || [],
       payload_schema: formData.payload_schema || null,
+      is_enabled: formData.is_enabled ?? true,
     })
     .select()
     .single();
@@ -83,6 +85,7 @@ export async function updateAPI(id: string, formData: APIFormData): Promise<API>
       cookies: formData.cookies || [],
       url_params: formData.url_params || [],
       payload_schema: formData.payload_schema || null,
+      is_enabled: formData.is_enabled ?? true,
     })
     .eq('id', id)
     .select()

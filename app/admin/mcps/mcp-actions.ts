@@ -11,13 +11,19 @@ export async function getMCPBySlug(slug: string): Promise<MCP | null> {
     .from('mcp')
     .select('*')
     .eq('slug', slug)
+    .eq('is_enabled', true) // Only return enabled MCPs
     .single();
 
   if (error) {
     if (error.code === 'PGRST116') {
-      return null; // Not found
+      return null; // Not found (or disabled)
     }
     throw new Error(`Failed to fetch MCP: ${error.message}`);
+  }
+
+  // Double check is_enabled in case RLS doesn't filter it
+  if (!data?.is_enabled) {
+    return null; // Return null if disabled, so it appears as non-existent
   }
 
   return data;
@@ -29,24 +35,35 @@ export async function getMCPToolsBySlug(slug: string): Promise<MCPTool[]> {
     .from('mcp')
     .select(`
       id,
-      mcp_tools (
+      is_enabled,
+      mcp_tools!inner (
         id,
         name,
         description,
         input_schema,
         uri,
         created_at,
-        updated_at
+        updated_at,
+        is_enabled
       )
     `)
     .eq('slug', slug)
+    .eq('is_enabled', true) // Only return tools for enabled MCPs
+    .eq('mcp_tools.is_enabled', true) // Only return enabled tools
     .single();
 
   if (error) {
     throw new Error(`Failed to fetch MCP tools: ${error.message}`);
   }
 
-  return (data?.mcp_tools || []) as MCPTool[];
+  // Double check is_enabled
+  if (!data?.is_enabled) {
+    return []; // Return empty array if MCP is disabled
+  }
+
+  // Filter out disabled tools
+  const tools = (data?.mcp_tools || []) as MCPTool[];
+  return tools.filter(tool => tool.is_enabled);
 }
 
 export async function getMCPToolByName(slug: string, toolName: string): Promise<MCPTool | null> {
@@ -55,6 +72,7 @@ export async function getMCPToolByName(slug: string, toolName: string): Promise<
     .from('mcp')
     .select(`
       id,
+      is_enabled,
       mcp_tools!inner (
         id,
         name,
@@ -62,19 +80,29 @@ export async function getMCPToolByName(slug: string, toolName: string): Promise<
         input_schema,
         uri,
         created_at,
-        updated_at
+        updated_at,
+        is_enabled
       )
     `)
     .eq('slug', slug)
+    .eq('is_enabled', true) // Only return tools for enabled MCPs
     .eq('mcp_tools.name', toolName)
+    .eq('mcp_tools.is_enabled', true) // Only return enabled tools
     .single();
 
-  if (error || !data?.mcp_tools || (Array.isArray(data.mcp_tools) && data.mcp_tools.length === 0)) {
+  if (error || !data?.is_enabled || !data?.mcp_tools || (Array.isArray(data.mcp_tools) && data.mcp_tools.length === 0)) {
     return null;
   }
 
   const tools = Array.isArray(data.mcp_tools) ? data.mcp_tools : [data.mcp_tools];
-  return tools[0] as MCPTool;
+  const tool = tools[0] as MCPTool;
+  
+  // Double check tool is enabled
+  if (!tool.is_enabled) {
+    return null;
+  }
+  
+  return tool;
 }
 
 export async function getMCPToolMapping(slug: string, toolName: string): Promise<{
@@ -84,26 +112,28 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
 } | null> {
   const supabase = await createClient();
   
-  // First, get the MCP
+  // First, get the MCP (only if enabled)
   const { data: mcp, error: mcpError } = await supabase
     .from('mcp')
-    .select('id')
+    .select('id, is_enabled')
     .eq('slug', slug)
+    .eq('is_enabled', true) // Only return mappings for enabled MCPs
     .single();
 
-  if (mcpError || !mcp) {
+  if (mcpError || !mcp || !mcp.is_enabled) {
     return null;
   }
 
-  // Get the tool
+  // Get the tool (only if enabled)
   const { data: tool, error: toolError } = await supabase
     .from('mcp_tools')
     .select('*')
     .eq('mcp_id', mcp.id)
     .eq('name', toolName)
+    .eq('is_enabled', true) // Only return enabled tools
     .single();
 
-  if (toolError || !tool) {
+  if (toolError || !tool || !tool.is_enabled) {
     return null;
   }
 
@@ -131,14 +161,15 @@ export async function getMCPToolMapping(slug: string, toolName: string): Promise
     };
   }
 
-  // Get the API
+  // Get the API (only if enabled)
   const { data: api, error: apiError } = await supabase
     .from('api')
     .select('*')
     .eq('id', mapping.api_id)
+    .eq('is_enabled', true) // Only return enabled APIs
     .single();
 
-  if (apiError || !api) {
+  if (apiError || !api || !api.is_enabled) {
     return {
       tool: {
         id: tool.id,

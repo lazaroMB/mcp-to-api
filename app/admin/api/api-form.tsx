@@ -19,6 +19,7 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
     cookies: api?.cookies || [],
     url_params: api?.url_params || [],
     payload_schema: api?.payload_schema || null,
+    is_enabled: api?.is_enabled ?? true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -407,6 +408,23 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
         />
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
           JSON Schema for request payload (optional, mainly for POST/PUT/PATCH)
+        </p>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.is_enabled}
+            onChange={(e) => setFormData({ ...formData, is_enabled: e.target.checked })}
+            className="rounded border-zinc-300"
+          />
+          <span className="text-sm font-medium text-black dark:text-zinc-50">
+            Enable API
+          </span>
+        </label>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+          If disabled, the API will not be available when queried
         </p>
       </div>
 

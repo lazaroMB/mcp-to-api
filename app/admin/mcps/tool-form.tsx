@@ -16,6 +16,7 @@ export default function ToolForm({ mcpId, tool, onSuccess, onCancel }: ToolFormP
     description: tool?.description || '',
     input_schema: tool?.input_schema || {},
     uri: tool?.uri || '',
+    is_enabled: tool?.is_enabled ?? true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -345,6 +346,23 @@ export default function ToolForm({ mcpId, tool, onSuccess, onCancel }: ToolFormP
             return null;
           })()}
         </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.is_enabled}
+            onChange={(e) => setFormData({ ...formData, is_enabled: e.target.checked })}
+            className="rounded border-zinc-300"
+          />
+          <span className="text-sm font-medium text-black dark:text-zinc-50">
+            Enable Tool
+          </span>
+        </label>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+          If disabled, the tool will not be available when queried
+        </p>
       </div>
 
       <div className="flex gap-3 pt-4">

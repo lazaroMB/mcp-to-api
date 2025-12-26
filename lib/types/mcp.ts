@@ -3,11 +3,13 @@ export interface MCP {
   created_at: string;
   name: string;
   slug: string;
+  is_enabled: boolean;
 }
 
 export interface MCPFormData {
   name: string;
   slug: string;
+  is_enabled: boolean;
 }
 
 export interface MCPTool {
@@ -19,6 +21,7 @@ export interface MCPTool {
   description: string | null;
   input_schema: Record<string, any>;
   uri: string;
+  is_enabled: boolean;
 }
 
 export interface MCPToolFormData {
@@ -26,6 +29,7 @@ export interface MCPToolFormData {
   description: string;
   input_schema: Record<string, any>;
   uri: string;
+  is_enabled: boolean;
 }
 
 export interface MCPResource {

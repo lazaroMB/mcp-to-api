@@ -102,7 +102,14 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
               <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-black dark:text-zinc-50">{mcp.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-black dark:text-zinc-50">{mcp.name}</h3>
+                      {!mcp.is_enabled && (
+                        <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          Disabled
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                       <code className="rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
                         {mcp.slug}

@@ -14,6 +14,7 @@ export default function MCPForm({ mcp, onSuccess, onCancel }: MCPFormProps) {
   const [formData, setFormData] = useState<MCPFormData>({
     name: mcp?.name || '',
     slug: mcp?.slug || '',
+    is_enabled: mcp?.is_enabled ?? true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +119,23 @@ export default function MCPForm({ mcp, onSuccess, onCancel }: MCPFormProps) {
         />
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
           URL-friendly identifier (lowercase, hyphens only)
+        </p>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.is_enabled}
+            onChange={(e) => setFormData({ ...formData, is_enabled: e.target.checked })}
+            className="rounded border-zinc-300"
+          />
+          <span className="text-sm font-medium text-black dark:text-zinc-50">
+            Enable MCP
+          </span>
+        </label>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+          If disabled, the MCP will appear as non-existent when accessed via API
         </p>
       </div>
 

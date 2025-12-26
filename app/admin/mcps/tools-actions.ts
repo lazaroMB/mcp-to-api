@@ -10,6 +10,7 @@ export async function getMCPTools(mcpId: string): Promise<MCPTool[]> {
   await requireAuth();
   const supabase = await createClient();
   // RLS will automatically filter by user_id
+  // Note: We don't filter by is_enabled here because admins should see all tools
   const { data, error } = await supabase
     .from('mcp_tools')
     .select('*')
@@ -59,6 +60,7 @@ export async function createMCPTool(mcpId: string, formData: MCPToolFormData): P
       description: formData.description || null,
       input_schema: formData.input_schema || {},
       uri: uri,
+      is_enabled: formData.is_enabled ?? true,
     })
     .select()
     .single();
@@ -86,6 +88,7 @@ export async function updateMCPTool(id: string, mcpId: string, formData: MCPTool
       description: formData.description || null,
       input_schema: formData.input_schema || {},
       uri: uri,
+      is_enabled: formData.is_enabled ?? true,
     })
     .eq('id', id)
     .select()
