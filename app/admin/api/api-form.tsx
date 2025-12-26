@@ -217,6 +217,9 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
           className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
           placeholder="https://api.example.com/endpoint"
         />
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+          You can use <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{variableName}"}</code> in the URL to reference payload fields.
+        </p>
       </div>
 
       <div>
@@ -250,6 +253,10 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
             + Add Header
           </button>
         </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
+          Use <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{variableName}"}</code> in header values to reference payload fields. 
+          Example: <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">Bearer {"{token}"}</code> will be replaced with the value of <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">token</code> from the payload.
+        </p>
         <div className="space-y-2">
           {formData.headers.map((header, index) => (
             <div key={index} className="flex gap-2">
@@ -264,7 +271,7 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
                 type="text"
                 value={header.value}
                 onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
-                placeholder="Header value"
+                placeholder="Header value (use {var} for variables)"
                 className="flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
               />
               <button
@@ -296,6 +303,10 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
             + Add Cookie
           </button>
         </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
+          Use <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{variableName}"}</code> in cookie values to reference payload fields. 
+          Example: <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{sessionId}"}</code> will be replaced with the value of <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">sessionId</code> from the payload.
+        </p>
         <div className="space-y-2">
           {formData.cookies.map((cookie, index) => (
             <div key={index} className="flex gap-2">
@@ -310,7 +321,7 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
                 type="text"
                 value={cookie.value}
                 onChange={(e) => handleCookieChange(index, 'value', e.target.value)}
-                placeholder="Cookie value"
+                placeholder="Cookie value (use {var} for variables)"
                 className="flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
               />
               <button
@@ -342,6 +353,10 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
             + Add Parameter
           </button>
         </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
+          Use <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{variableName}"}</code> in parameter values to reference payload fields. 
+          Example: <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{"{userId}"}</code> will be replaced with the value of <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">userId</code> from the payload.
+        </p>
         <div className="space-y-2">
           {formData.url_params.map((param, index) => (
             <div key={index} className="flex gap-2">
@@ -356,7 +371,7 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
                 type="text"
                 value={param.value}
                 onChange={(e) => handleUrlParamChange(index, 'value', e.target.value)}
-                placeholder="Parameter value"
+                placeholder="Parameter value (use {var} for variables)"
                 className="flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
               />
               <button

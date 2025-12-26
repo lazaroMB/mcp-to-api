@@ -11,19 +11,52 @@ export interface APIResponse {
 }
 
 /**
+ * Substitutes variables in a string using {var} syntax
+ * Variables are replaced with values from the payload
+ */
+function substituteVariables(
+  template: string,
+  payload: Record<string, any>
+): string {
+  if (!template || typeof template !== 'string') {
+    return template;
+  }
+
+  // Replace {var} with values from payload
+  return template.replace(/\{(\w+)\}/g, (match, varName) => {
+    const value = payload[varName];
+    if (value === undefined || value === null) {
+      // If variable not found, leave it as-is or return empty string
+      // You might want to throw an error here instead
+      console.warn(`Variable ${varName} not found in payload, leaving {${varName}} as-is`);
+      return match;
+    }
+    // Convert to string and URL encode
+    return encodeURIComponent(String(value));
+  });
+}
+
+/**
  * Builds and executes an API request based on API configuration
  */
 export async function callMappedAPI(
   api: API,
   options: APIRequestOptions = {}
 ): Promise<APIResponse> {
-  // Build URL with query parameters
-  let url = api.url;
+  const payload = options.payload || {};
+
+  // Substitute variables in the base URL
+  let url = substituteVariables(api.url, payload);
+
+  // Build URL with query parameters, substituting variables
   if (api.url_params && api.url_params.length > 0) {
     const params = new URLSearchParams();
     api.url_params.forEach((param: KeyValuePair) => {
       if (param.name && param.value) {
-        params.append(param.name, param.value);
+        // Substitute variables in both param name and value
+        const paramName = substituteVariables(param.name, payload);
+        const paramValue = substituteVariables(param.value, payload);
+        params.append(paramName, paramValue);
       }
     });
     const queryString = params.toString();
@@ -32,7 +65,7 @@ export async function callMappedAPI(
     }
   }
 
-  // Build headers
+  // Build headers, substituting variables
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -40,17 +73,23 @@ export async function callMappedAPI(
   if (api.headers && api.headers.length > 0) {
     api.headers.forEach((header: KeyValuePair) => {
       if (header.name && header.value) {
-        headers[header.name] = header.value;
+        // Substitute variables in header values (not names, as header names are case-insensitive)
+        const headerName = header.name;
+        const headerValue = substituteVariables(header.value, payload);
+        headers[headerName] = headerValue;
       }
     });
   }
 
-  // Build cookies
+  // Build cookies, substituting variables
   if (api.cookies && api.cookies.length > 0) {
     const cookieHeader = api.cookies
       .map((cookie: KeyValuePair) => {
         if (cookie.name && cookie.value) {
-          return `${cookie.name}=${cookie.value}`;
+          // Substitute variables in cookie values
+          const cookieName = cookie.name;
+          const cookieValue = substituteVariables(cookie.value, payload);
+          return `${cookieName}=${cookieValue}`;
         }
         return null;
       })
