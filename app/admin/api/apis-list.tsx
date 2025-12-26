@@ -13,6 +13,7 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingAPI, setEditingAPI] = useState<API | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreate = () => {
     setEditingAPI(null);
@@ -30,6 +31,7 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
     }
 
     setDeletingId(id);
+    setError(null);
     try {
       const response = await fetch(`/admin/api/api?id=${id}`, {
         method: 'DELETE',
@@ -42,7 +44,7 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
 
       setApis(apis.filter((api) => api.id !== id));
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to delete API');
+      setError(error instanceof Error ? error.message : 'Failed to delete API');
     } finally {
       setDeletingId(null);
     }
@@ -77,6 +79,23 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="font-medium mb-1">Error deleting API</p>
+              <p>{error}</p>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="ml-4 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex justify-end">
         <button
           onClick={handleCreate}

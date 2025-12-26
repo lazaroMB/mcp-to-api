@@ -102,6 +102,53 @@ export async function updateAPI(id: string, formData: APIFormData): Promise<API>
 export async function deleteAPI(id: string): Promise<void> {
   await requireAuth();
   const supabase = await createClient();
+  
+  // Check if API is used in any tool mappings
+  const { data: mappings, error: mappingsError } = await supabase
+    .from('mcp_tool_api_mapping')
+    .select('id, mcp_tool_id')
+    .eq('api_id', id);
+
+  if (mappingsError) {
+    throw new Error(`Failed to check API usage: ${mappingsError.message}`);
+  }
+
+  if (mappings && mappings.length > 0) {
+    // Get tool and MCP information for each mapping
+    const usageDetails: string[] = [];
+    
+    for (const mapping of mappings) {
+      // Get the tool
+      const { data: tool } = await supabase
+        .from('mcp_tools')
+        .select('id, name, mcp_id')
+        .eq('id', mapping.mcp_tool_id)
+        .single();
+
+      if (tool) {
+        // Get the MCP
+        const { data: mcp } = await supabase
+          .from('mcp')
+          .select('id, name, slug')
+          .eq('id', tool.mcp_id)
+          .single();
+
+        if (mcp) {
+          usageDetails.push(`MCP "${mcp.name}" (${mcp.slug}) - Tool "${tool.name}"`);
+        } else {
+          usageDetails.push(`Tool "${tool.name}"`);
+        }
+      } else {
+        usageDetails.push('Unknown tool');
+      }
+    }
+
+    throw new Error(
+      `Cannot delete API: It is currently used in ${mappings.length} tool mapping(s): ${usageDetails.join(', ')}. ` +
+      `Please remove or update these mappings before deleting the API.`
+    );
+  }
+
   // RLS will automatically ensure user owns this API
   const { error } = await supabase
     .from('api')
