@@ -15,6 +15,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AdminLayoutClient({
   children,
@@ -62,6 +63,9 @@ export default function AdminLayoutClient({
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger />
           <h2 className="text-lg font-medium">Admin Space</h2>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
       </SidebarInset>

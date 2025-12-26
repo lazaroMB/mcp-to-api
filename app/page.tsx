@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <Button variant="ghost" render={<Link href="/login">Sign In</Link>} />
               <Button render={<Link href="/login">Get Started</Link>} />
             </div>

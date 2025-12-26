@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription, CardPanel } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -87,6 +88,9 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <Link
