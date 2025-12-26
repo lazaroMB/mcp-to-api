@@ -38,7 +38,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Button size="lg" render={<Link href="/login">Get Started</Link>} />
-            <Button variant="ghost" size="lg" render={<Link href="/admin">Learn more <span aria-hidden="true">→</span></Link>} />
+            <Button variant="ghost" size="lg" render={<Link href="/learn-more">Learn more <span aria-hidden="true">→</span></Link>} />
           </div>
         </div>
       </section>
