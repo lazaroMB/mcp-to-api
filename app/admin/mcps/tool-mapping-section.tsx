@@ -132,16 +132,23 @@ export default function ToolMappingSection({
             onCancel={handleFormCancel}
           />
         ) : !mapping ? (
-          <div className="text-center py-8">
-            <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-              No API mapping configured. Add a mapping to connect this tool to an API.
-            </p>
-            <button
-              onClick={handleCreate}
-              className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-            >
-              Add Mapping
-            </button>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 dark:bg-yellow-900/20 dark:border-yellow-800">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400 mb-2">
+                ⚠️ No API Mapping Configured
+              </p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-500">
+                This tool cannot be called until it's mapped to an API. Add a mapping to connect this tool's inputs to an API endpoint.
+              </p>
+            </div>
+            <div className="text-center">
+              <button
+                onClick={handleCreate}
+                className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+              >
+                Add Mapping
+              </button>
+            </div>
           </div>
         ) : (
           <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">

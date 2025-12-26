@@ -40,6 +40,10 @@ export async function getMCPTool(id: string): Promise<MCPTool | null> {
 
 export async function createMCPTool(mcpId: string, formData: MCPToolFormData): Promise<MCPTool> {
   const supabase = await createClient();
+  
+  // Generate URI if not provided
+  const uri = formData.uri || `tool://${formData.name}`;
+  
   const { data, error } = await supabase
     .from('mcp_tools')
     .insert({
@@ -47,6 +51,7 @@ export async function createMCPTool(mcpId: string, formData: MCPToolFormData): P
       name: formData.name,
       description: formData.description || null,
       input_schema: formData.input_schema || {},
+      uri: uri,
     })
     .select()
     .single();
@@ -61,12 +66,17 @@ export async function createMCPTool(mcpId: string, formData: MCPToolFormData): P
 
 export async function updateMCPTool(id: string, mcpId: string, formData: MCPToolFormData): Promise<MCPTool> {
   const supabase = await createClient();
+  
+  // Generate URI if not provided
+  const uri = formData.uri || `tool://${formData.name}`;
+  
   const { data, error } = await supabase
     .from('mcp_tools')
     .update({
       name: formData.name,
       description: formData.description || null,
       input_schema: formData.input_schema || {},
+      uri: uri,
     })
     .eq('id', id)
     .select()
@@ -138,6 +148,7 @@ export async function createMCPResource(mcpId: string, formData: MCPResourceForm
       name: formData.name,
       description: formData.description || null,
       mime_type: formData.mime_type || null,
+      tool_id: formData.tool_id || null,
     })
     .select()
     .single();
@@ -157,6 +168,7 @@ export async function updateMCPResource(id: string, mcpId: string, formData: MCP
     .update({
       uri: formData.uri,
       name: formData.name,
+      tool_id: formData.tool_id || null,
       description: formData.description || null,
       mime_type: formData.mime_type || null,
     })

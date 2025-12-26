@@ -1,18 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { MCPResource, MCPResourceFormData } from '@/lib/types/mcp';
+import { MCPResource, MCPResourceFormData, MCPTool } from '@/lib/types/mcp';
 import ResourceForm from './resource-form';
 
 interface ResourcesSectionProps {
   mcpId: string;
   initialResources: MCPResource[];
+  tools: MCPTool[];
   onUpdate: (resources: MCPResource[]) => void;
 }
 
 export default function ResourcesSection({
   mcpId,
   initialResources,
+  tools,
   onUpdate,
 }: ResourcesSectionProps) {
   const [resources, setResources] = useState<MCPResource[]>(initialResources);
@@ -100,6 +102,7 @@ export default function ResourcesSection({
           <ResourceForm
             mcpId={mcpId}
             resource={editingResource}
+            tools={tools}
             onSuccess={handleFormSuccess}
             onCancel={handleFormCancel}
           />
@@ -131,6 +134,11 @@ export default function ResourcesSection({
                   {resource.mime_type && (
                     <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                       MIME Type: {resource.mime_type}
+                    </p>
+                  )}
+                  {resource.tool_id && (
+                    <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                      🔗 Linked to tool (accepts parameters)
                     </p>
                   )}
                 </div>

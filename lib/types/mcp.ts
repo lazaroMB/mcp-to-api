@@ -18,12 +18,14 @@ export interface MCPTool {
   name: string;
   description: string | null;
   input_schema: Record<string, any>;
+  uri: string;
 }
 
 export interface MCPToolFormData {
   name: string;
   description: string;
   input_schema: Record<string, any>;
+  uri: string;
 }
 
 export interface MCPResource {
@@ -35,6 +37,7 @@ export interface MCPResource {
   name: string;
   description: string | null;
   mime_type: string | null;
+  tool_id: string | null;
 }
 
 export interface MCPResourceFormData {
@@ -42,4 +45,5 @@ export interface MCPResourceFormData {
   name: string;
   description: string;
   mime_type: string;
+  tool_id: string | null;
 }

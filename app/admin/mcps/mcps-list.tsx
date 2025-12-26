@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { MCP } from '@/lib/types/mcp';
 import MCPForm from './mcp-form';
+import MCPConfigView from './mcp-config-view';
 
 interface MCPsListProps {
   initialMCPs: MCP[];
@@ -92,73 +93,56 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
           <p className="text-zinc-600 dark:text-zinc-400">No MCPs found. Create your first MCP to get started.</p>
         </div>
       ) : (
-        <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-zinc-200 dark:border-zinc-800">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Slug
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                {mcps.map((mcp) => (
-                  <tr key={mcp.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <td className="px-6 py-4 text-sm font-medium text-black dark:text-zinc-50">
-                      {mcp.name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="space-y-4">
+          {mcps.map((mcp) => (
+            <div
+              key={mcp.id}
+              className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+            >
+              <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-black dark:text-zinc-50">{mcp.name}</h3>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                       <code className="rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
                         {mcp.slug}
                       </code>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                      {new Date(mcp.created_at).toLocaleDateString('en-US', {
+                      {' • '}
+                      Created: {new Date(mcp.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
                       })}
-                    </td>
-                    <td className="px-6 py-4 text-right text-sm">
-                      <div className="flex items-center justify-end gap-3">
-                        <Link
-                          href={`/admin/mcps/${mcp.id}`}
-                          className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
-                        >
-                          Configure
-                        </Link>
-                        <button
-                          onClick={() => handleEdit(mcp)}
-                          className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(mcp.id)}
-                          disabled={deletingId === mcp.id}
-                          className="text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          {deletingId === mcp.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/mcps/${mcp.id}`}
+                      className="rounded-lg bg-black px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+                    >
+                      Configure
+                    </Link>
+                    <button
+                      onClick={() => handleEdit(mcp)}
+                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(mcp.id)}
+                      disabled={deletingId === mcp.id}
+                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                    >
+                      {deletingId === mcp.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <MCPConfigView mcpSlug={mcp.slug} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

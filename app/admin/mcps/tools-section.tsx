@@ -82,10 +82,10 @@ export default function ToolsSection({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
-              Tools
+              Tools & Resources
             </h2>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Manage tools (functions/capabilities) for this MCP
+              Manage tools (functions/capabilities) for this MCP. Tools can be used as both tools (via tools/call) and resources (via resources/read).
             </p>
           </div>
           {!showForm && (
@@ -116,26 +116,85 @@ export default function ToolsSection({
             {tools.map((tool) => (
               <div key={tool.id} className="space-y-4">
                 <div className="flex items-start justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-                  <div className="flex-1">
-                    <h3 className="font-medium text-black dark:text-zinc-50">
-                      {tool.name}
-                    </h3>
-                    {tool.description && (
-                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        {tool.description}
-                      </p>
-                    )}
-                    <div className="mt-2">
-                      <details className="text-xs">
-                        <summary className="cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300">
-                          View Input Schema
-                        </summary>
-                        <pre className="mt-2 overflow-auto rounded bg-zinc-100 p-2 dark:bg-zinc-800">
+                <div className="flex-1">
+                  <h3 className="font-medium text-black dark:text-zinc-50">
+                    {tool.name}
+                  </h3>
+                  {tool.description && (
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      {tool.description}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                    <code className="rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
+                      {tool.uri}
+                    </code>
+                    <span className="ml-2 text-blue-600 dark:text-blue-400">(also available as resource)</span>
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    {(() => {
+                      const schema = tool.input_schema || {};
+                      const hasProperties = schema?.properties && Object.keys(schema.properties).length > 0;
+                      if (!hasProperties) {
+                        return (
+                          <div className="space-y-1">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                              ⚠️ No parameters defined
+                            </span>
+                            <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                              Edit this tool to add parameters to the input schema. Without parameters, the tool cannot accept arguments.
+                            </p>
+                          </div>
+                        );
+                      }
+                      const paramCount = Object.keys(schema.properties).length;
+                      return (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          ✓ {paramCount} parameter{paramCount !== 1 ? 's' : ''}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="mt-2">
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300">
+                        View Input Schema
+                      </summary>
+                      <div className="mt-2 space-y-2">
+                        <pre className="overflow-auto rounded bg-zinc-100 p-2 dark:bg-zinc-800">
                           {JSON.stringify(tool.input_schema, null, 2)}
                         </pre>
-                      </details>
-                    </div>
+                        {(() => {
+                          const schema = tool.input_schema || {};
+                          const properties = schema.properties || {};
+                          const paramNames = Object.keys(properties);
+                          if (paramNames.length > 0) {
+                            return (
+                              <div className="rounded bg-blue-50 border border-blue-200 p-2 dark:bg-blue-900/20 dark:border-blue-800">
+                                <p className="text-xs font-medium text-blue-800 dark:text-blue-400 mb-1">
+                                  Available Parameters:
+                                </p>
+                                <ul className="text-xs text-blue-700 dark:text-blue-300 list-disc list-inside">
+                                  {paramNames.map((param) => {
+                                    const prop = properties[param];
+                                    return (
+                                      <li key={param}>
+                                        <code className="font-mono">{param}</code>
+                                        {prop.type && ` (${prop.type})`}
+                                        {prop.description && ` - ${prop.description}`}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </details>
                   </div>
+                </div>
                   <div className="ml-4 flex gap-2">
                     <button
                       onClick={() => handleEdit(tool)}

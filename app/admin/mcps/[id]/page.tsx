@@ -1,5 +1,5 @@
 import { getMCP } from '../actions';
-import { getMCPTools, getMCPResources } from '../tools-actions';
+import { getMCPTools } from '../tools-actions';
 import { getAPIs } from '@/app/admin/api/actions';
 import MCPDetail from '../mcp-detail';
 import { notFound } from 'next/navigation';
@@ -17,14 +17,12 @@ export default async function MCPDetailPage({
   }
 
   let tools = [];
-  let resources = [];
   let apis = [];
   let error = null;
 
   try {
-    [tools, resources, apis] = await Promise.all([
+    [tools, apis] = await Promise.all([
       getMCPTools(id),
-      getMCPResources(id),
       getAPIs(),
     ]);
   } catch (err) {
@@ -35,7 +33,6 @@ export default async function MCPDetailPage({
     <MCPDetail
       mcp={mcp}
       initialTools={tools}
-      initialResources={resources}
       apis={apis}
       error={error}
     />

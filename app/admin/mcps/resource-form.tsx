@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { MCPResource, MCPResourceFormData } from '@/lib/types/mcp';
+import { useState, useEffect } from 'react';
+import { MCPResource, MCPResourceFormData, MCPTool } from '@/lib/types/mcp';
 
 interface ResourceFormProps {
   mcpId: string;
   resource?: MCPResource | null;
+  tools: MCPTool[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -13,6 +14,7 @@ interface ResourceFormProps {
 export default function ResourceForm({
   mcpId,
   resource,
+  tools,
   onSuccess,
   onCancel,
 }: ResourceFormProps) {
@@ -21,6 +23,7 @@ export default function ResourceForm({
     name: resource?.name || '',
     description: resource?.description || '',
     mime_type: resource?.mime_type || '',
+    tool_id: resource?.tool_id || null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +141,31 @@ export default function ResourceForm({
         />
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
           Optional MIME type for the resource
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="tool_id"
+          className="block text-sm font-medium text-black dark:text-zinc-50 mb-2"
+        >
+          Linked Tool (Optional)
+        </label>
+        <select
+          id="tool_id"
+          value={formData.tool_id || ''}
+          onChange={(e) => setFormData({ ...formData, tool_id: e.target.value || null })}
+          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
+        >
+          <option value="">No tool linked (static resource)</option>
+          {tools.map((tool) => (
+            <option key={tool.id} value={tool.id}>
+              {tool.name} {tool.description ? `- ${tool.description}` : ''}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+          Link this resource to a tool to make it dynamic. The tool's input schema will be used as parameters when reading this resource.
         </p>
       </div>
 
