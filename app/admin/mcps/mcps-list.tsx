@@ -5,6 +5,21 @@ import Link from 'next/link';
 import { MCP } from '@/lib/types/mcp';
 import MCPForm from './mcp-form';
 import MCPConfigView from './mcp-config-view';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardPanel } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Empty, EmptyTitle, EmptyDescription } from '@/components/ui/empty';
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 interface MCPsListProps {
   initialMCPs: MCP[];
@@ -27,10 +42,6 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this MCP? This action cannot be undone.')) {
-      return;
-    }
-
     setDeletingId(id);
     try {
       const response = await fetch(`/admin/mcps/api?id=${id}`, {
@@ -68,50 +79,45 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
 
   if (showForm) {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-6 text-xl font-semibold text-black dark:text-zinc-50">
-          {editingMCP ? 'Edit MCP' : 'Create New MCP'}
-        </h2>
-        <MCPForm mcp={editingMCP} onSuccess={handleFormSuccess} onCancel={handleFormCancel} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>{editingMCP ? 'Edit MCP' : 'Create New MCP'}</CardTitle>
+        </CardHeader>
+        <CardPanel>
+          <MCPForm mcp={editingMCP} onSuccess={handleFormSuccess} onCancel={handleFormCancel} />
+        </CardPanel>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
-          onClick={handleCreate}
-          className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-        >
+        <Button onClick={handleCreate}>
           Create MCP
-        </button>
+        </Button>
       </div>
 
       {mcps.length === 0 ? (
-        <div className="rounded-lg border border-zinc-200 bg-white p-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-zinc-600 dark:text-zinc-400">No MCPs found. Create your first MCP to get started.</p>
-        </div>
+        <Empty>
+          <EmptyTitle>No MCPs found</EmptyTitle>
+          <EmptyDescription>Create your first MCP to get started.</EmptyDescription>
+        </Empty>
       ) : (
         <div className="space-y-4">
           {mcps.map((mcp) => (
-            <div
-              key={mcp.id}
-              className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
+            <Card key={mcp.id}>
+              <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-black dark:text-zinc-50">{mcp.name}</h3>
+                      <CardTitle>{mcp.name}</CardTitle>
                       {!mcp.is_enabled && (
-                        <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                          Disabled
-                        </span>
+                        <Badge variant="destructive">Disabled</Badge>
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                      <code className="rounded bg-zinc-100 px-2 py-1 text-xs dark:bg-zinc-800">
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      <code className="rounded bg-muted px-2 py-1 text-xs">
                         {mcp.slug}
                       </code>
                       {' • '}
@@ -123,32 +129,51 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/admin/mcps/${mcp.id}`}
-                      className="rounded-lg bg-black px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-                    >
-                      Configure
-                    </Link>
-                    <button
+                    <Button size="sm" render={<Link href={`/admin/mcps/${mcp.id}`}>Configure</Link>} />
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleEdit(mcp)}
-                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                     >
                       Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(mcp.id)}
-                      disabled={deletingId === mcp.id}
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                    >
-                      {deletingId === mcp.id ? 'Deleting...' : 'Delete'}
-                    </button>
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger
+                        className={cn(buttonVariants({ size: "sm", variant: "destructive-outline" }))}
+                        disabled={deletingId === mcp.id}
+                      >
+                        {deletingId === mcp.id ? 'Deleting...' : 'Delete'}
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the MCP
+                            and all associated tools and resources.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogClose
+                            className={cn(buttonVariants({ variant: "outline" }))}
+                          >
+                            Cancel
+                          </AlertDialogClose>
+                          <AlertDialogClose
+                            className={cn(buttonVariants({ variant: "destructive" }))}
+                            onClick={() => handleDelete(mcp.id)}
+                          >
+                            Delete
+                          </AlertDialogClose>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
-              </div>
-              <div className="p-4">
+              </CardHeader>
+              <CardPanel>
                 <MCPConfigView mcpSlug={mcp.slug} />
-              </div>
-            </div>
+              </CardPanel>
+            </Card>
           ))}
         </div>
       )}

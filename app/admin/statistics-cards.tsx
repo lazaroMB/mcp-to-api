@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardStatistics } from './mcps/statistics-types';
+import { Card, CardHeader, CardTitle, CardDescription, CardPanel } from '@/components/ui/card';
 
 interface StatisticsCardsProps {
   stats: DashboardStatistics;
@@ -46,24 +47,26 @@ function StatCard({
   changeType?: 'positive' | 'negative' | 'neutral';
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-        {title}
-      </p>
-      <p
-        className={`mt-2 text-2xl font-bold ${
-          changeType === 'positive'
-            ? 'text-green-600 dark:text-green-400'
-            : changeType === 'negative'
-            ? 'text-red-600 dark:text-red-400'
-            : 'text-black dark:text-zinc-50'
-        }`}
-      >
-        {value}
-      </p>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
-        {description}
-      </p>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardDescription>{title}</CardDescription>
+        <CardTitle
+          className={`text-2xl ${
+            changeType === 'positive'
+              ? 'text-green-600 dark:text-green-400'
+              : changeType === 'negative'
+              ? 'text-red-600 dark:text-red-400'
+              : ''
+          }`}
+        >
+          {value}
+        </CardTitle>
+      </CardHeader>
+      <CardPanel>
+        <p className="text-sm text-muted-foreground">
+          {description}
+        </p>
+      </CardPanel>
+    </Card>
   );
 }

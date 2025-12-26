@@ -3,6 +3,12 @@
 import { useState, useEffect } from 'react';
 import { MCP, MCPFormData } from '@/lib/types/mcp';
 import { generateSlug } from '@/lib/utils/slug';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Alert } from '@/components/ui/alert';
 
 interface MCPFormProps {
   mcp?: MCP | null;
@@ -62,50 +68,41 @@ export default function MCPForm({ mcp, onSuccess, onCancel }: MCPFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
+        <Alert variant="error">
           {error}
-        </div>
+        </Alert>
       )}
 
-      <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-black dark:text-zinc-50 mb-2"
-        >
+      <Field>
+        <FieldLabel htmlFor="name">
           Name *
-        </label>
-        <input
+        </FieldLabel>
+        <Input
           type="text"
           id="name"
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
           placeholder="Enter MCP name"
         />
-      </div>
+      </Field>
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label
-            htmlFor="slug"
-            className="block text-sm font-medium text-black dark:text-zinc-50"
-          >
+      <Field>
+        <div className="flex items-center justify-between">
+          <FieldLabel htmlFor="slug">
             Slug *
-          </label>
+          </FieldLabel>
           {!mcp && (
-            <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <input
-                type="checkbox"
+            <Label className="flex items-center gap-2 text-sm">
+              <Checkbox
                 checked={autoGenerateSlug}
-                onChange={(e) => setAutoGenerateSlug(e.target.checked)}
-                className="rounded border-zinc-300"
+                onCheckedChange={(checked) => setAutoGenerateSlug(checked === true)}
               />
               Auto-generate from name
-            </label>
+            </Label>
           )}
         </div>
-        <input
+        <Input
           type="text"
           id="slug"
           required
@@ -114,47 +111,46 @@ export default function MCPForm({ mcp, onSuccess, onCancel }: MCPFormProps) {
             setFormData({ ...formData, slug: e.target.value });
             setAutoGenerateSlug(false);
           }}
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
           placeholder="Enter MCP slug"
         />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+        <FieldDescription>
           URL-friendly identifier (lowercase, hyphens only)
-        </p>
-      </div>
+        </FieldDescription>
+      </Field>
 
-      <div>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
+      <Field>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="is_enabled"
             checked={formData.is_enabled}
-            onChange={(e) => setFormData({ ...formData, is_enabled: e.target.checked })}
-            className="rounded border-zinc-300"
+            onCheckedChange={(checked) => setFormData({ ...formData, is_enabled: checked === true })}
           />
-          <span className="text-sm font-medium text-black dark:text-zinc-50">
+          <Label htmlFor="is_enabled" className="text-sm font-medium">
             Enable MCP
-          </span>
-        </label>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+          </Label>
+        </div>
+        <FieldDescription>
           If disabled, the MCP will appear as non-existent when accessed via API
-        </p>
-      </div>
+        </FieldDescription>
+      </Field>
 
       <div className="flex gap-3 pt-4">
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+          className="flex-1"
         >
           {isSubmitting ? 'Saving...' : mcp ? 'Update MCP' : 'Create MCP'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          className="flex-1"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

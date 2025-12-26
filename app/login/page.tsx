@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardDescription, CardPanel } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,8 +39,8 @@ export default function LoginPage() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-zinc-600 dark:text-zinc-400">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -81,105 +86,95 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
-      <div className="w-full max-w-md space-y-8 rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
-        <div>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
           <Link
             href="/"
-            className="mb-4 inline-flex items-center text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+            className="mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
           >
             ← Back to Home
           </Link>
-          <h2 className="text-center text-3xl font-bold text-black dark:text-zinc-50">
+          <CardTitle className="text-center text-3xl">
             {isSignUp ? 'Create Account' : 'Sign In'}
-          </h2>
-          <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
+          </CardTitle>
+          <CardDescription className="text-center">
             {isSignUp
               ? 'Create a new account to get started'
               : 'Sign in to access the admin dashboard'}
-          </p>
-        </div>
+          </CardDescription>
+        </CardHeader>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
-              {error}
+        <CardPanel>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <Alert variant="error">
+                {error}
+              </Alert>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={6}
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
-          )}
 
-          <div className="space-y-4">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full"
               >
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-black placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-600 dark:focus:ring-zinc-600"
-                placeholder="you@example.com"
-              />
+                {loading
+                  ? 'Please wait...'
+                  : isSignUp
+                    ? 'Create Account'
+                    : 'Sign In'}
+              </Button>
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError(null);
+                }}
               >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-black placeholder-zinc-400 focus:border-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-600 dark:focus:ring-zinc-600"
-                placeholder="••••••••"
-              />
+                {isSignUp
+                  ? 'Already have an account? Sign in'
+                  : "Don't have an account? Sign up"}
+              </Button>
             </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-            >
-              {loading
-                ? 'Please wait...'
-                : isSignUp
-                  ? 'Create Account'
-                  : 'Sign In'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-              }}
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              {isSignUp
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"}
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </CardPanel>
+      </Card>
     </div>
   );
 }
