@@ -3,9 +3,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { MCPToolAPIMapping, MappingFormData, MappingConfig } from '@/lib/types/mapping';
+import { requireAuth } from '@/lib/auth/middleware';
 
 export async function getToolMapping(toolId: string): Promise<MCPToolAPIMapping | null> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp_tool_api_mapping')
     .select('*')
@@ -26,7 +29,9 @@ export async function getToolMappings(toolId: string): Promise<MCPToolAPIMapping
 }
 
 export async function getMapping(id: string): Promise<MCPToolAPIMapping | null> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp_tool_api_mapping')
     .select('*')
@@ -44,6 +49,7 @@ export async function getMapping(id: string): Promise<MCPToolAPIMapping | null> 
 }
 
 export async function createMapping(toolId: string, formData: MappingFormData): Promise<MCPToolAPIMapping> {
+  await requireAuth();
   const supabase = await createClient();
   
   // Check if a mapping already exists for this tool
@@ -53,6 +59,7 @@ export async function createMapping(toolId: string, formData: MappingFormData): 
     return updateMapping(existing.id, toolId, formData);
   }
 
+  // Trigger will automatically set user_id
   const { data, error } = await supabase
     .from('mcp_tool_api_mapping')
     .insert({
@@ -81,7 +88,9 @@ export async function createMapping(toolId: string, formData: MappingFormData): 
 }
 
 export async function updateMapping(id: string, toolId: string, formData: MappingFormData): Promise<MCPToolAPIMapping> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this mapping
   const { data, error } = await supabase
     .from('mcp_tool_api_mapping')
     .update({
@@ -110,7 +119,9 @@ export async function updateMapping(id: string, toolId: string, formData: Mappin
 }
 
 export async function deleteMapping(id: string, toolId: string): Promise<void> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this mapping
   const { error } = await supabase
     .from('mcp_tool_api_mapping')
     .delete()

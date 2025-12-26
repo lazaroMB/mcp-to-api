@@ -3,10 +3,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { MCPTool, MCPToolFormData, MCPResource, MCPResourceFormData } from '@/lib/types/mcp';
+import { requireAuth } from '@/lib/auth/middleware';
 
 // Tools
 export async function getMCPTools(mcpId: string): Promise<MCPTool[]> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp_tools')
     .select('*')
@@ -21,7 +24,9 @@ export async function getMCPTools(mcpId: string): Promise<MCPTool[]> {
 }
 
 export async function getMCPTool(id: string): Promise<MCPTool | null> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp_tools')
     .select('*')
@@ -39,11 +44,13 @@ export async function getMCPTool(id: string): Promise<MCPTool | null> {
 }
 
 export async function createMCPTool(mcpId: string, formData: MCPToolFormData): Promise<MCPTool> {
+  await requireAuth();
   const supabase = await createClient();
   
   // Generate URI if not provided
   const uri = formData.uri || `tool://${formData.name}`;
   
+  // Trigger will automatically set user_id
   const { data, error } = await supabase
     .from('mcp_tools')
     .insert({
@@ -65,11 +72,13 @@ export async function createMCPTool(mcpId: string, formData: MCPToolFormData): P
 }
 
 export async function updateMCPTool(id: string, mcpId: string, formData: MCPToolFormData): Promise<MCPTool> {
+  await requireAuth();
   const supabase = await createClient();
   
   // Generate URI if not provided
   const uri = formData.uri || `tool://${formData.name}`;
   
+  // RLS will automatically ensure user owns this tool
   const { data, error } = await supabase
     .from('mcp_tools')
     .update({
@@ -91,7 +100,9 @@ export async function updateMCPTool(id: string, mcpId: string, formData: MCPTool
 }
 
 export async function deleteMCPTool(id: string, mcpId: string): Promise<void> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this tool
   const { error } = await supabase
     .from('mcp_tools')
     .delete()
@@ -106,7 +117,9 @@ export async function deleteMCPTool(id: string, mcpId: string): Promise<void> {
 
 // Resources
 export async function getMCPResources(mcpId: string): Promise<MCPResource[]> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp_resources')
     .select('*')
@@ -121,7 +134,9 @@ export async function getMCPResources(mcpId: string): Promise<MCPResource[]> {
 }
 
 export async function getMCPResource(id: string): Promise<MCPResource | null> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp_resources')
     .select('*')
@@ -139,7 +154,9 @@ export async function getMCPResource(id: string): Promise<MCPResource | null> {
 }
 
 export async function createMCPResource(mcpId: string, formData: MCPResourceFormData): Promise<MCPResource> {
+  await requireAuth();
   const supabase = await createClient();
+  // Trigger will automatically set user_id
   const { data, error } = await supabase
     .from('mcp_resources')
     .insert({
@@ -162,7 +179,9 @@ export async function createMCPResource(mcpId: string, formData: MCPResourceForm
 }
 
 export async function updateMCPResource(id: string, mcpId: string, formData: MCPResourceFormData): Promise<MCPResource> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this resource
   const { data, error } = await supabase
     .from('mcp_resources')
     .update({
@@ -185,7 +204,9 @@ export async function updateMCPResource(id: string, mcpId: string, formData: MCP
 }
 
 export async function deleteMCPResource(id: string, mcpId: string): Promise<void> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this resource
   const { error } = await supabase
     .from('mcp_resources')
     .delete()

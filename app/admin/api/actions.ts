@@ -3,9 +3,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { API, APIFormData } from '@/lib/types/api';
+import { requireAuth } from '@/lib/auth/middleware';
 
 export async function getAPIs(): Promise<API[]> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('api')
     .select('*')
@@ -19,7 +22,9 @@ export async function getAPIs(): Promise<API[]> {
 }
 
 export async function getAPI(id: string): Promise<API | null> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('api')
     .select('*')
@@ -37,7 +42,9 @@ export async function getAPI(id: string): Promise<API | null> {
 }
 
 export async function createAPI(formData: APIFormData): Promise<API> {
+  await requireAuth();
   const supabase = await createClient();
+  // Trigger will automatically set user_id
   const { data, error } = await supabase
     .from('api')
     .insert({
@@ -62,7 +69,9 @@ export async function createAPI(formData: APIFormData): Promise<API> {
 }
 
 export async function updateAPI(id: string, formData: APIFormData): Promise<API> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this API
   const { data, error } = await supabase
     .from('api')
     .update({
@@ -88,7 +97,9 @@ export async function updateAPI(id: string, formData: APIFormData): Promise<API>
 }
 
 export async function deleteAPI(id: string): Promise<void> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this API
   const { error } = await supabase
     .from('api')
     .delete()

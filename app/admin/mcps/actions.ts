@@ -3,9 +3,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { MCP, MCPFormData } from '@/lib/types/mcp';
+import { requireAuth } from '@/lib/auth/middleware';
 
 export async function getMCPs(): Promise<MCP[]> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp')
     .select('*')
@@ -19,7 +22,9 @@ export async function getMCPs(): Promise<MCP[]> {
 }
 
 export async function getMCP(id: string): Promise<MCP | null> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically filter by user_id
   const { data, error } = await supabase
     .from('mcp')
     .select('*')
@@ -37,7 +42,9 @@ export async function getMCP(id: string): Promise<MCP | null> {
 }
 
 export async function createMCP(formData: MCPFormData): Promise<MCP> {
+  await requireAuth();
   const supabase = await createClient();
+  // Trigger will automatically set user_id
   const { data, error } = await supabase
     .from('mcp')
     .insert({
@@ -56,7 +63,9 @@ export async function createMCP(formData: MCPFormData): Promise<MCP> {
 }
 
 export async function updateMCP(id: string, formData: MCPFormData): Promise<MCP> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this MCP
   const { data, error } = await supabase
     .from('mcp')
     .update({
@@ -76,7 +85,9 @@ export async function updateMCP(id: string, formData: MCPFormData): Promise<MCP>
 }
 
 export async function deleteMCP(id: string): Promise<void> {
+  await requireAuth();
   const supabase = await createClient();
+  // RLS will automatically ensure user owns this MCP
   const { error } = await supabase
     .from('mcp')
     .delete()
