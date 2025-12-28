@@ -1,44 +1,62 @@
 /**
  * Generates MCP client configuration JSON for a given MCP
+ * 
+ * Note: For private MCPs, the client should automatically handle OAuth
+ * when it receives a 401 response with WWW-Authenticate header.
+ * No token should be included in the configuration - the client will
+ * discover and complete the OAuth flow automatically.
  */
-export function generateMCPConfig(mcpSlug: string, baseUrl: string = ''): string {
+export function generateMCPConfig(mcpSlug: string, visibility: 'public' | 'private' = 'public', baseUrl: string = ''): string {
   // Use the current origin if baseUrl is not provided
   const serverUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
   const mcpEndpoint = `${serverUrl}/api/mcp/${mcpSlug}`;
 
-  const config = {
+  const config: any = {
     mcpServers: {
       [mcpSlug]: {
         url: mcpEndpoint,
-        // Optional: Add authentication if needed
-        // headers: {
-        //   "Authorization": "Bearer YOUR_TOKEN"
-        // }
       },
     },
   };
+
+  // For private MCPs, the client should handle OAuth automatically
+  // We don't include a token here - the client will:
+  // 1. Make a request to the MCP endpoint
+  // 2. Receive a 401 with WWW-Authenticate header
+  // 3. Discover OAuth endpoints from the resource_metadata URL
+  // 4. Complete the OAuth flow automatically
+  // 5. Use the token for subsequent requests
 
   return JSON.stringify(config, null, 2);
 }
 
 /**
  * Generates Claude Desktop MCP configuration
+ * 
+ * Note: For private MCPs, the client should automatically handle OAuth
+ * when it receives a 401 response with WWW-Authenticate header.
+ * No token should be included in the configuration - the client will
+ * discover and complete the OAuth flow automatically.
  */
-export function generateClaudeDesktopConfig(mcpSlug: string, baseUrl: string = ''): string {
+export function generateClaudeDesktopConfig(mcpSlug: string, visibility: 'public' | 'private' = 'public', baseUrl: string = ''): string {
   const serverUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
   const mcpEndpoint = `${serverUrl}/api/mcp/${mcpSlug}`;
 
-  const config = {
+  const config: any = {
     mcpServers: {
       [mcpSlug]: {
-        command: "npx",
-        args: ["-y", "@modelcontextprotocol/server-everything"],
-        env: {
-          MCP_SERVER_URL: mcpEndpoint,
-        },
+        url: mcpEndpoint,
       },
     },
   };
+
+  // For private MCPs, the client should handle OAuth automatically
+  // We don't include a token here - the client will:
+  // 1. Make a request to the MCP endpoint
+  // 2. Receive a 401 with WWW-Authenticate header
+  // 3. Discover OAuth endpoints from the resource_metadata URL
+  // 4. Complete the OAuth flow automatically
+  // 5. Use the token for subsequent requests
 
   return JSON.stringify(config, null, 2);
 }

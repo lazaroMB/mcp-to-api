@@ -6,6 +6,7 @@ import { MCP, MCPTool } from '@/lib/types/mcp';
 import { API } from '@/lib/types/api';
 import ToolsSection from './tools-section';
 import ToolStatisticsSection from './tool-statistics-section';
+import AccessManagement from './access-management';
 import { ToolStatistics, MCPStatistics } from './statistics-types';
 
 interface MCPDetailProps {
@@ -56,6 +57,15 @@ export default function MCPDetail({
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
             Created: {new Date(mcp.created_at).toLocaleDateString()}
           </p>
+          <div className="mt-2">
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              mcp.visibility === 'public'
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+            }`}>
+              {mcp.visibility === 'public' ? 'Public' : 'Private'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -73,6 +83,13 @@ export default function MCPDetail({
           mcpStats={mcpStats}
           timeRange={timeRange}
         />
+      )}
+
+      {/* Access Management - Only show for private MCPs */}
+      {mcp.visibility === 'private' && (
+        <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+          <AccessManagement mcpId={mcp.id} />
+        </div>
       )}
 
       <ToolsSection 

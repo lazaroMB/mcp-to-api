@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMCPBySlug } from '@/app/admin/mcps/mcp-actions';
-import { getMCPToolsBySlug, getMCPToolMapping } from '@/app/admin/mcps/mcp-actions';
+import { getMCPBySlug, getMCPToolsBySlug, getMCPToolMapping } from '@/app/admin/mcps/mcp-actions';
 import { transformToolArgsToAPIPayload } from '@/lib/mcp/transformer';
 import { callMappedAPI } from '@/lib/mcp/api-client';
 import { getDynamicCapabilities } from '@/lib/mcp/capabilities';
 import { validateAndNormalizeInputSchema } from '@/lib/mcp/schema-validator';
 import { trackToolUsage } from '@/lib/mcp/statistics';
+import { checkMCPAccess } from '@/lib/auth/mcp-access';
+import { validateAccessToken } from '@/lib/oauth/token';
+import { getProtectedResourceMetadata } from '@/lib/oauth/metadata';
 import { 
   MCPInitializeRequest,
   MCPInitializeResponse, 
@@ -20,6 +22,83 @@ import {
   MCPReadResourceRequest,
   MCPReadResourceResponse,
 } from '@/lib/mcp/protocol';
+
+/**
+ * GET handler - Provides MCP endpoint information and handles discovery
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const { slug } = await params;
+    const mcp = await getMCPBySlug(slug);
+    
+    if (!mcp) {
+      return NextResponse.json(
+        { error: 'MCP not found' },
+        { status: 404 }
+      );
+    }
+    
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
+    
+    // Get tools count for information
+    const tools = await getMCPToolsBySlug(slug).catch(() => []);
+    
+    // Return MCP endpoint information
+    const response: any = {
+      name: mcp.name,
+      slug: mcp.slug,
+      visibility: mcp.visibility,
+      endpoint: `${baseUrl}/api/mcp/${slug}`,
+      protocol: 'JSON-RPC 2.0',
+      methods: ['POST'],
+      toolsCount: tools.length,
+      authorization: mcp.visibility === 'private' ? {
+        required: true,
+        type: 'OAuth 2.1',
+        metadataUrl: resourceMetadataUrl,
+        tokenUrl: `${baseUrl}/oauth-token/${slug}`,
+      } : {
+        required: false,
+      },
+      message: mcp.visibility === 'private' 
+        ? `This is a private MCP with ${tools.length} tool(s). Authorization is required. Get a token at: ${baseUrl}/oauth-token/${slug}`
+        : `This is a public MCP with ${tools.length} tool(s). Use POST requests with JSON-RPC 2.0 format.`,
+      instructions: mcp.visibility === 'private' ? {
+        step1: `Visit ${baseUrl}/oauth-token/${slug} to get an access token`,
+        step2: 'Add the token to your Cursor MCP configuration (.cursor/mcp.json)',
+        step3: 'Restart Cursor to load the configuration',
+        exampleConfig: {
+          mcpServers: {
+            [slug]: {
+              url: `${baseUrl}/api/mcp/${slug}`,
+              headers: {
+                Authorization: 'Bearer YOUR_TOKEN_HERE'
+              }
+            }
+          }
+        }
+      } : null,
+    };
+    
+    return NextResponse.json(response, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(mcp.visibility === 'private' ? {
+          'WWW-Authenticate': `Bearer realm="mcp", resource_metadata="${resourceMetadataUrl}", scope="mcp:tools mcp:resources"`,
+        } : {}),
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(
   request: NextRequest,
@@ -42,6 +121,103 @@ export async function POST(
         },
       };
       return NextResponse.json(errorResponse, { status: 404 });
+    }
+
+    // Authorization check
+    const authHeader = request.headers.get('authorization');
+    let userId: string | null = null;
+    
+    if (mcp.visibility === 'private') {
+      // Private MCPs require Bearer token
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
+        const errorId = body.id !== null && body.id !== undefined ? body.id : '1';
+        const errorResponse: JSONRPCResponse = {
+          jsonrpc: '2.0',
+          id: errorId,
+          error: {
+            code: 401,
+            message: 'Authorization required',
+          },
+        };
+        return NextResponse.json(errorResponse, {
+          status: 401,
+          headers: {
+            'WWW-Authenticate': `Bearer realm="mcp", resource_metadata="${resourceMetadataUrl}", scope="mcp:tools mcp:resources"`,
+          },
+        });
+      }
+      
+      const token = authHeader.substring(7);
+      const validation = await validateAccessToken(token, mcp.id);
+      
+      if (!validation.valid) {
+        const errorId = body.id !== null && body.id !== undefined ? body.id : '1';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
+        const tokenUrl = `${baseUrl}/api/oauth/${slug}/token`;
+        
+        // Build WWW-Authenticate header with refresh instructions if token expired
+        let wwwAuthenticate = `Bearer realm="mcp", resource_metadata="${resourceMetadataUrl}", scope="mcp:tools mcp:resources"`;
+        if (validation.error === 'Token expired' && validation.hasRefreshToken) {
+          wwwAuthenticate += `, error="invalid_token", error_description="Token expired. Use refresh_token grant at ${tokenUrl}"`;
+        }
+        
+        const errorResponse: JSONRPCResponse = {
+          jsonrpc: '2.0',
+          id: errorId,
+          error: {
+            code: 401,
+            message: validation.error || 'Invalid or expired token',
+            data: validation.error === 'Token expired' && validation.hasRefreshToken ? {
+              refresh_available: true,
+              token_endpoint: tokenUrl,
+              grant_type: 'refresh_token',
+              message: 'Your access token has expired. Use your refresh_token to get a new access_token at the token endpoint.'
+            } : undefined,
+          },
+        };
+        return NextResponse.json(errorResponse, { 
+          status: 401,
+          headers: {
+            'WWW-Authenticate': wwwAuthenticate,
+          },
+        });
+      }
+      
+      userId = validation.userId || null;
+      
+      // Verify access grant
+      const accessCheck = await checkMCPAccess(slug, userId);
+      if (!accessCheck.hasAccess) {
+        const errorId = body.id !== null && body.id !== undefined ? body.id : '1';
+        const errorResponse: JSONRPCResponse = {
+          jsonrpc: '2.0',
+          id: errorId,
+          error: {
+            code: 403,
+            message: 'Access denied',
+          },
+        };
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
+        return NextResponse.json(errorResponse, {
+          status: 403,
+          headers: {
+            'WWW-Authenticate': `Bearer error="insufficient_scope", resource_metadata="${resourceMetadataUrl}", scope="mcp:tools mcp:resources"`,
+          },
+        });
+      }
+    } else {
+      // Public MCPs - optional auth for tracking
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const validation = await validateAccessToken(token, mcp.id);
+        if (validation.valid) {
+          userId = validation.userId || null;
+        }
+      }
     }
 
     // Check if this is a notification (no id field or id is null)
@@ -331,16 +507,10 @@ export async function POST(
       // Ensure we use the provided arguments (or empty object if none)
       const toolArguments = toolRequest.arguments || {};
       
-      // Log for debugging
-      console.log(`[MCP Tool Call] Tool: ${toolRequest.name}, Arguments:`, toolArguments);
-      console.log(`[MCP Tool Call] Tool Schema:`, normalizedSchema);
-      
       const apiPayload = transformToolArgsToAPIPayload(
         toolArguments,
         mapping.mapping_config
       );
-      
-      console.log(`[MCP Tool Call] Transformed Payload:`, apiPayload);
 
       const apiResponse = await callMappedAPI(api, {
         payload: apiPayload,
@@ -348,9 +518,6 @@ export async function POST(
       
       const responseTime = Date.now() - startTime;
       const isSuccess = apiResponse.status >= 200 && apiResponse.status < 300;
-      
-      console.log(`[MCP Tool Call] API Response Status:`, apiResponse.status);
-      console.log(`[MCP Tool Call] API Response Data:`, apiResponse.data);
 
       // Track tool usage (both success and failure)
       trackToolUsage({

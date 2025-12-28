@@ -51,6 +51,7 @@ export async function createMCP(formData: MCPFormData): Promise<MCP> {
       name: formData.name,
       slug: formData.slug,
       is_enabled: formData.is_enabled ?? true,
+      visibility: formData.visibility || 'private',
     })
     .select()
     .single();
@@ -73,6 +74,7 @@ export async function updateMCP(id: string, formData: MCPFormData): Promise<MCP>
       name: formData.name,
       slug: formData.slug,
       is_enabled: formData.is_enabled ?? true,
+      visibility: formData.visibility || 'private',
     })
     .eq('id', id)
     .select()

@@ -39,18 +39,6 @@ export default function MappingForm({
     ? extractFieldsFromSchema(selectedAPI.payload_schema)
     : [];
   
-  // Debug logging
-  useEffect(() => {
-    if (tool.input_schema) {
-      console.log('Tool input_schema:', tool.input_schema);
-      console.log('Extracted tool fields:', toolInputFieldsWithDesc);
-    }
-    if (selectedAPI?.payload_schema) {
-      console.log('API payload_schema:', selectedAPI.payload_schema);
-      console.log('Extracted API fields:', apiPayloadFields);
-    }
-  }, [tool.input_schema, selectedAPI?.payload_schema, toolInputFieldsWithDesc, apiPayloadFields]);
-  
   // Create a map for quick lookup of descriptions
   const toolFieldMap = new Map(
     toolInputFieldsWithDesc.map(f => [f.name, f.description || ''])

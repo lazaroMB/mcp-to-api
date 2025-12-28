@@ -1,15 +1,20 @@
+export type MCPVisibility = 'public' | 'private';
+
 export interface MCP {
   id: string;
   created_at: string;
   name: string;
   slug: string;
   is_enabled: boolean;
+  visibility: MCPVisibility;
+  user_id: string;
 }
 
 export interface MCPFormData {
   name: string;
   slug: string;
   is_enabled: boolean;
+  visibility: MCPVisibility;
 }
 
 export interface MCPTool {
@@ -67,4 +72,19 @@ export interface MCPToolUsageStats {
   api_id: string | null;
   client_ip: string | null;
   created_at: string;
+}
+
+export interface MCPAccess {
+  id: string;
+  mcp_id: string;
+  user_id: string;
+  granted_by: string;
+  granted_at: string;
+  expires_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+  // Joined data
+  user_email?: string;
+  user_name?: string;
+  mcp_name?: string;
 }

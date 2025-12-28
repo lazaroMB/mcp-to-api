@@ -5,15 +5,16 @@ import { generateMCPConfig, generateClaudeDesktopConfig } from '@/lib/utils/mcp-
 
 interface MCPConfigViewProps {
   mcpSlug: string;
+  mcpVisibility?: 'public' | 'private';
 }
 
-export default function MCPConfigView({ mcpSlug }: MCPConfigViewProps) {
+export default function MCPConfigView({ mcpSlug, mcpVisibility = 'public' }: MCPConfigViewProps) {
   const [configType, setConfigType] = useState<'http' | 'claude'>('http');
   const [copied, setCopied] = useState(false);
 
   const config = configType === 'http'
-    ? generateMCPConfig(mcpSlug)
-    : generateClaudeDesktopConfig(mcpSlug);
+    ? generateMCPConfig(mcpSlug, mcpVisibility)
+    : generateClaudeDesktopConfig(mcpSlug, mcpVisibility);
 
   const handleCopy = async () => {
     try {
@@ -21,7 +22,7 @@ export default function MCPConfigView({ mcpSlug }: MCPConfigViewProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      // Silently handle copy errors
     }
   };
 
@@ -67,9 +68,43 @@ export default function MCPConfigView({ mcpSlug }: MCPConfigViewProps) {
             {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/mcp/{mcpSlug}
           </code>
         </p>
+        {mcpVisibility === 'private' && (
+          <div className="mt-2 space-y-2">
+            <p className="text-xs text-blue-700 dark:text-blue-400">
+              <strong>🔒 This is a private MCP.</strong> OAuth authorization is required.
+            </p>
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              <strong>Automatic OAuth:</strong> Most MCP clients (like Cursor) should automatically handle OAuth when they receive a 401 response. The client will:
+            </p>
+            <ol className="text-xs text-blue-600 dark:text-blue-400 list-decimal list-inside ml-2 space-y-1">
+              <li>Make a request to the MCP endpoint</li>
+              <li>Receive a 401 with <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">WWW-Authenticate</code> header</li>
+              <li>Discover OAuth endpoints from the metadata URL</li>
+              <li>Complete the OAuth flow automatically</li>
+              <li>Use the token for subsequent requests</li>
+            </ol>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+              <strong>Manual Token (if automatic OAuth doesn't work):</strong> If your client doesn't support automatic OAuth, you can{' '}
+              <a
+                href={`/oauth-token/${mcpSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline hover:text-blue-800 dark:hover:text-blue-200"
+              >
+                get a token manually
+              </a>
+              {' '}and add it to the configuration:
+            </p>
+            <pre className="text-xs bg-blue-100 dark:bg-blue-900/40 p-2 rounded mt-1 overflow-x-auto">
+              <code>{`"headers": {
+  "Authorization": "Bearer YOUR_TOKEN_HERE"
+}`}</code>
+            </pre>
+          </div>
+        )}
         {configType === 'http' && (
           <p className="mt-2 text-xs text-blue-700 dark:text-blue-400">
-            This configuration is for HTTP/SSE-based MCP clients. Add this to your MCP client configuration file.
+            This configuration is for HTTP/SSE-based MCP clients. Add this to your MCP client configuration file (e.g., <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">.cursor/mcp.json</code>).
           </p>
         )}
         {configType === 'claude' && (

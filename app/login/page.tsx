@@ -28,8 +28,15 @@ export default function LoginPage() {
       } = await supabase.auth.getUser();
 
       if (user) {
-        router.push('/admin');
-        router.refresh();
+        // Check if there's a redirect parameter (for OAuth flow)
+        const redirect = new URLSearchParams(window.location.search).get('redirect');
+        if (redirect) {
+          // Redirect back to the OAuth authorize endpoint
+          window.location.href = redirect;
+        } else {
+          router.push('/admin');
+          router.refresh();
+        }
       } else {
         setCheckingAuth(false);
       }
@@ -54,6 +61,9 @@ export default function LoginPage() {
     const supabase = createClient();
 
     try {
+      // Check for redirect parameter before login
+      const redirect = new URLSearchParams(window.location.search).get('redirect');
+
       if (isSignUp) {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -63,9 +73,13 @@ export default function LoginPage() {
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          // Redirect to admin after successful signup
-          router.push('/admin');
-          router.refresh();
+          // Redirect to redirect URL if present, otherwise admin
+          if (redirect) {
+            window.location.href = redirect;
+          } else {
+            router.push('/admin');
+            router.refresh();
+          }
         }
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -75,9 +89,13 @@ export default function LoginPage() {
 
         if (signInError) throw signInError;
 
-        // Redirect to admin after successful login
-        router.push('/admin');
-        router.refresh();
+        // Redirect to redirect URL if present, otherwise admin
+        if (redirect) {
+          window.location.href = redirect;
+        } else {
+          router.push('/admin');
+          router.refresh();
+        }
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');

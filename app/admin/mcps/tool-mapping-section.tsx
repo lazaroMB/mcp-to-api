@@ -33,7 +33,7 @@ export default function ToolMappingSection({
           setMapping(data.length > 0 ? data[0] : null);
         }
       } catch (error) {
-        console.error('Failed to fetch mapping:', error);
+        // Silently handle fetch errors
       }
     };
     fetchMapping();

@@ -30,6 +30,7 @@ export default function AddToMCPDialog({ api, open, onOpenChange }: AddToMCPDial
     name: '',
     slug: '',
     is_enabled: true,
+    visibility: 'private',
   });
   const [autoGenerateSlug, setAutoGenerateSlug] = useState(true);
 

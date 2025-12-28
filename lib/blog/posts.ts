@@ -2046,6 +2046,353 @@ While the automatic configuration is great for getting started, remember that yo
 4. Test the tool with an MCP client
 
 For more information, see our guides on [creating MCP tools manually](/blog/how-to-create-mcp-tools), [understanding mappings](/blog/how-mcp-to-api-mapping-works), and [configuring MCPs](/blog/how-to-configure-mcp-in-admin).`
+  },
+  {
+    slug: 'how-to-make-mcp-private-and-configure-oauth',
+    title: 'How to Make an MCP Private and Configure OAuth Authentication',
+    description: 'Learn how to secure your MCP servers by making them private, granting access to specific users, and configuring OAuth 2.1 authentication for secure client connections.',
+    publishedAt: '2024-01-20',
+    author: 'API to MCP Team',
+    category: 'Security',
+    readingTime: 12,
+    content: `# How to Make an MCP Private and Configure OAuth Authentication
+
+When you create an MCP server, you have two visibility options: **public** or **private**. Public MCPs are accessible to everyone, while private MCPs require authentication and explicit access grants. This guide will walk you through making your MCP private, managing user access, and configuring OAuth authentication.
+
+## Understanding MCP Visibility
+
+### Public MCPs
+- Accessible to anyone without authentication
+- No user management required
+- Best for: Public APIs, open data, demo/testing purposes
+
+### Private MCPs
+- Require OAuth 2.1 authentication
+- Access must be explicitly granted to users
+- Best for: Internal APIs, sensitive data, production systems
+
+## Step 1: Making an MCP Private
+
+### During Creation
+
+When creating a new MCP:
+
+1. Navigate to **Admin** → **MCPs** → **Create MCP**
+2. Fill in the basic information:
+   - **Name**: A descriptive name for your MCP
+   - **Slug**: URL-friendly identifier
+3. Set **Visibility** to **Private**
+4. Click **Create MCP**
+
+### Changing Existing MCP to Private
+
+If you have an existing public MCP:
+
+1. Go to **Admin** → **MCPs**
+2. Click **Edit** on the MCP you want to make private
+3. Change **Visibility** from **Public** to **Private**
+4. Click **Update MCP**
+
+**Important**: Once an MCP is private, only users with explicit access grants will be able to connect to it.
+
+## Step 2: Granting Access to Users
+
+After making an MCP private, you need to grant access to specific users. Only the MCP owner can grant access.
+
+### Finding Users
+
+1. Navigate to your private MCP's detail page
+2. Scroll to the **Access Management** section (only visible for private MCPs)
+3. Use the user search to find users by email
+
+### Granting Access
+
+1. Enter the user's email address in the search field
+2. Click **Grant Access**
+3. Optionally set an expiration date (leave blank for permanent access)
+4. The user will now be able to authenticate and use the MCP
+
+### Managing Access
+
+In the **Access Management** section, you can:
+
+- **View all users** with access to your MCP
+- **Revoke access** by clicking the revoke button next to a user
+- **See access details** including:
+  - Who granted the access
+  - When access was granted
+  - Expiration date (if set)
+  - Revocation status
+
+### Access Levels
+
+Currently, there are two access levels:
+
+1. **Owner**: The user who created the MCP (always has access)
+2. **Granted User**: Users explicitly granted access by the owner
+
+## Step 3: Configuring OAuth for MCP Clients
+
+Once your MCP is private, clients need to authenticate using OAuth 2.1. Here's how to configure different MCP clients.
+
+### For Cursor (Manual Token Method)
+
+Since Cursor may not yet fully support automatic OAuth discovery, you can manually get a token:
+
+#### Option 1: Get Token via Web UI
+
+1. Visit: \`http://localhost:3000/oauth-token/{your-mcp-slug}\`
+2. Click **Get Token**
+3. Complete the authorization flow:
+   - Log in if not already authenticated
+   - Grant access to the MCP
+   - Receive your access token
+4. Copy the token
+
+#### Option 2: Configure Cursor
+
+Create or edit \`.cursor/mcp.json\` in your project:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "your-mcp-slug": {
+      "url": "http://localhost:3000/api/mcp/your-mcp-slug",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN_HERE"
+      }
+    }
+  }
+}
+\`\`\`
+
+Replace \`YOUR_ACCESS_TOKEN_HERE\` with the token you received.
+
+5. **Restart Cursor** to load the new configuration
+
+**Important**: After updating your MCP configuration or getting a new token, you **must restart Cursor** for the changes to take effect. Cursor caches the MCP configuration when it starts, so configuration changes won't be recognized until you restart the application.
+
+### For Other MCP Clients (Automatic OAuth)
+
+If your client supports automatic OAuth discovery (RFC 9728), configure it without a token:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "your-mcp-slug": {
+      "url": "http://localhost:3000/api/mcp/your-mcp-slug"
+    }
+  }
+}
+\`\`\`
+
+The client should automatically:
+1. Detect the 401 response
+2. Parse the \`WWW-Authenticate\` header
+3. Discover OAuth endpoints
+4. Open browser for authorization
+5. Complete the OAuth flow
+6. Store and use the token
+
+### Token Expiration and Refresh
+
+**Access tokens** expire after **1 hour**. **Refresh tokens** last **7 days**.
+
+#### Current Behavior
+
+**Important**: After authentication or when your token expires, you **may need to restart Cursor** for the changes to take effect. This is because:
+
+1. Cursor caches MCP configuration and tokens when it starts
+2. Some clients don't yet automatically refresh expired tokens
+3. Configuration file changes require a restart to be loaded
+
+**When to restart Cursor**:
+- After adding or updating your MCP configuration
+- After getting a new access token
+- When you receive authentication errors
+- After granting or revoking access to your MCP
+
+#### Future Improvement
+
+Clients should automatically:
+- Detect expired tokens from 401 responses
+- Use refresh tokens to get new access tokens
+- Retry requests without user intervention
+
+Until then, you can manually refresh tokens by:
+1. Visiting the token page again: \`http://localhost:3000/oauth-token/{mcp-slug}\`
+2. Getting a new token
+3. Updating your client configuration
+
+## Step 4: Understanding the OAuth Flow
+
+Here's what happens behind the scenes when a client connects to your private MCP:
+
+### 1. Initial Request
+Client makes a request to the MCP endpoint without authentication.
+
+### 2. 401 Response
+Server responds with:
+- Status: \`401 Unauthorized\`
+- Header: \`WWW-Authenticate: Bearer realm="mcp", resource_metadata="...", scope="mcp:tools mcp:resources"\`
+
+### 3. Discovery
+Client fetches OAuth metadata from the resource_metadata URL to discover:
+- Authorization endpoint
+- Token endpoint
+- Supported scopes
+- PKCE requirements
+
+### 4. Authorization
+Client redirects user to authorization endpoint where they:
+- Log in (if not authenticated)
+- Grant access (if not already granted)
+- Receive authorization code
+
+### 5. Token Exchange
+Client exchanges authorization code for access token using PKCE.
+
+### 6. Authenticated Requests
+Client uses access token in \`Authorization: Bearer\` header for all subsequent requests.
+
+## Security Best Practices
+
+### For MCP Owners
+
+1. **Grant access selectively**: Only grant access to users who need it
+2. **Use expiration dates**: Set expiration dates for temporary access
+3. **Monitor access**: Regularly review who has access to your MCPs
+4. **Revoke when needed**: Immediately revoke access for users who no longer need it
+5. **Use HTTPS in production**: Always use HTTPS for production deployments
+
+### For MCP Users
+
+1. **Protect your tokens**: Never share access tokens publicly
+2. **Use secure storage**: Store tokens securely in configuration files
+3. **Rotate tokens**: Get new tokens periodically for better security
+4. **Report issues**: Report any security concerns to the MCP owner
+
+## Troubleshooting
+
+### "Access denied" Error
+
+**Possible causes**:
+- User doesn't have access grant
+- Access was revoked
+- Access has expired
+
+**Solution**: Contact the MCP owner to grant or renew access.
+
+### "Token expired" Error
+
+**Possible causes**:
+- Access token expired (after 1 hour)
+- Refresh token expired (after 7 days)
+
+**Solution**: 
+- Get a new token from the token page
+- Update your client configuration
+- Restart your MCP client
+
+### "Invalid token" Error
+
+**Possible causes**:
+- Token was revoked
+- Token is malformed
+- Token is for a different MCP
+
+**Solution**: Get a new token and verify it's for the correct MCP.
+
+### Client Can't Connect
+
+**Possible causes**:
+- MCP is disabled
+- Incorrect endpoint URL
+- Network issues
+- Configuration not loaded (needs restart)
+
+**Solution**:
+- Verify MCP is enabled in admin panel
+- Check the endpoint URL matches the MCP slug
+- Verify network connectivity
+- **Restart Cursor** - Configuration changes require a restart to take effect
+
+### Authentication Not Working After Configuration
+
+**Possible causes**:
+- Token not updated in configuration file
+- Cursor hasn't reloaded the configuration
+- Token expired
+
+**Solution**:
+1. Verify the token is correctly added to \`.cursor/mcp.json\`
+2. **Restart Cursor completely** (quit and reopen the application)
+3. If still not working, get a fresh token and update the configuration
+4. Restart Cursor again after updating the token
+
+## Configuration Examples
+
+### Cursor Configuration (with token)
+
+\`\`\`json
+{
+  "mcpServers": {
+    "my-private-api": {
+      "url": "http://localhost:3000/api/mcp/my-private-api",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      }
+    }
+  }
+}
+\`\`\`
+
+### Claude Desktop Configuration
+
+\`\`\`json
+{
+  "mcpServers": {
+    "my-private-api": {
+      "url": "http://localhost:3000/api/mcp/my-private-api",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN_HERE"
+      }
+    }
+  }
+}
+\`\`\`
+
+Save to: \`~/Library/Application Support/Claude/claude_desktop_config.json\`
+
+## API Endpoints Reference
+
+### MCP Endpoint
+\`POST http://localhost:3000/api/mcp/{slug}\`
+
+### OAuth Endpoints
+- **Authorization**: \`GET http://localhost:3000/api/oauth/{slug}/authorize\`
+- **Token**: \`POST http://localhost:3000/api/oauth/{slug}/token\`
+- **Token Page**: \`GET http://localhost:3000/oauth-token/{slug}\`
+- **Metadata**: \`GET http://localhost:3000/api/oauth/{slug}/.well-known/oauth-protected-resource\`
+
+## Conclusion
+
+Making your MCP private adds an important layer of security, ensuring only authorized users can access your APIs. The OAuth 2.1 flow provides secure authentication while maintaining a good user experience.
+
+**Key Takeaways**:
+- Set visibility to **Private** when creating or editing an MCP
+- Grant access to specific users through the Access Management section
+- Configure clients with OAuth tokens for authentication
+- **Always restart Cursor after authentication or configuration changes** - This is required for changes to take effect
+- Monitor and manage access regularly for security
+
+**Next Steps**:
+1. Make one of your MCPs private
+2. Grant access to a test user
+3. Configure an MCP client with OAuth
+4. Test the authenticated connection
+
+For more information, see our guides on [automatic OAuth flow](/docs/AUTOMATIC_OAUTH.md), [authorization documentation](/docs/AUTHORIZATION.md), and [troubleshooting authentication issues](/docs/TROUBLESHOOTING.md).`
   }
 ];
 

@@ -115,6 +115,16 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
                       {!mcp.is_enabled && (
                         <Badge variant="destructive">Disabled</Badge>
                       )}
+                      {mcp.visibility === 'private' && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">
+                          Private
+                        </Badge>
+                      )}
+                      {mcp.visibility === 'public' && (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+                          Public
+                        </Badge>
+                      )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       <code className="rounded bg-muted px-2 py-1 text-xs">
@@ -171,7 +181,7 @@ export default function MCPsList({ initialMCPs }: MCPsListProps) {
                 </div>
               </CardHeader>
               <CardPanel>
-                <MCPConfigView mcpSlug={mcp.slug} />
+                <MCPConfigView mcpSlug={mcp.slug} mcpVisibility={mcp.visibility} />
               </CardPanel>
             </Card>
           ))}

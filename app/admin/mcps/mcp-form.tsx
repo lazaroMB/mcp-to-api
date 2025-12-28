@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MCP, MCPFormData } from '@/lib/types/mcp';
+import { MCP, MCPFormData, MCPVisibility } from '@/lib/types/mcp';
 import { generateSlug } from '@/lib/utils/slug';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
+import { RadioGroup, Radio } from '@/components/ui/radio-group';
 
 interface MCPFormProps {
   mcp?: MCP | null;
@@ -21,6 +22,7 @@ export default function MCPForm({ mcp, onSuccess, onCancel }: MCPFormProps) {
     name: mcp?.name || '',
     slug: mcp?.slug || '',
     is_enabled: mcp?.is_enabled ?? true,
+    visibility: (mcp?.visibility as MCPVisibility) || 'private',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,6 +134,36 @@ export default function MCPForm({ mcp, onSuccess, onCancel }: MCPFormProps) {
         <FieldDescription>
           If disabled, the MCP will appear as non-existent when accessed via API
         </FieldDescription>
+      </Field>
+
+      <Field>
+        <FieldLabel>
+          Visibility *
+        </FieldLabel>
+        <RadioGroup
+          value={formData.visibility}
+          onValueChange={(value) => setFormData({ ...formData, visibility: value as MCPVisibility })}
+          className="space-y-2"
+        >
+          <div className="flex items-center gap-2">
+            <Radio value="public" id="visibility-public" />
+            <Label htmlFor="visibility-public" className="text-sm font-medium cursor-pointer">
+              Public
+            </Label>
+          </div>
+          <FieldDescription className="ml-6">
+            Accessible to everyone without authorization
+          </FieldDescription>
+          <div className="flex items-center gap-2">
+            <Radio value="private" id="visibility-private" />
+            <Label htmlFor="visibility-private" className="text-sm font-medium cursor-pointer">
+              Private
+            </Label>
+          </div>
+          <FieldDescription className="ml-6">
+            Requires access grant and OAuth authorization
+          </FieldDescription>
+        </RadioGroup>
       </Field>
 
       <div className="flex gap-3 pt-4">
