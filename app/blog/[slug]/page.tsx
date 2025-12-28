@@ -48,6 +48,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     let inCodeBlock = false;
     let codeBlockContent: string[] = [];
     let codeBlockLanguage = '';
+    let keyCounter = 0; // Shared counter for all inline markdown elements
 
     const flushParagraph = () => {
       if (currentParagraph.length > 0) {
@@ -88,7 +89,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       
       const result: (string | React.ReactElement)[] = [];
       let remaining = text;
-      let keyCounter = 0;
 
       // Process in order: code (backticks), links, bold, italic
       while (remaining.length > 0) {
