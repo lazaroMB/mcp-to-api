@@ -1,6 +1,13 @@
 import SwaggerParser from 'swagger-parser';
 import { APIFormData, HTTPMethod } from '@/lib/types/api';
 
+// Type declaration for swagger-parser v10 API
+interface SwaggerParserType {
+  dereference(url: string): Promise<any>;
+}
+
+const parser = SwaggerParser as unknown as SwaggerParserType;
+
 interface OpenAPISpec {
   openapi?: string;
   swagger?: string;
@@ -104,7 +111,7 @@ function buildURL(baseURL: string, path: string): string {
 export async function parseOpenAPIToAPIs(openAPIUrl: string): Promise<APIFormData[]> {
   try {
     // Fetch and parse the OpenAPI spec
-    const api = await SwaggerParser.dereference(openAPIUrl);
+    const api = await parser.dereference(openAPIUrl);
     const spec = api as OpenAPISpec;
 
     if (!spec.paths) {
