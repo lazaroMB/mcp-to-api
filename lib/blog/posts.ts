@@ -1466,6 +1466,219 @@ After setting up your first MCP server:
 Setting up an MCP server is a straightforward process when you follow these steps in order. Start with creating your APIs, then set up the MCP server, define your tools, and finally map them together.
 
 Remember to test each step as you go, and don't hesitate to refine your configuration based on actual usage.`
+  },
+  {
+    slug: 'how-to-import-openapi-into-api-admin',
+    title: 'How to Import OpenAPI Specifications into API Admin',
+    description: 'Learn how to quickly import multiple API endpoints from an OpenAPI (Swagger) specification file. Save time by automatically creating all APIs from a single URL.',
+    publishedAt: '2024-01-20',
+    author: 'API to MCP Team',
+    category: 'API Setup',
+    readingTime: 6,
+    content: `# How to Import OpenAPI Specifications into API Admin
+
+Importing APIs manually can be time-consuming, especially when working with large APIs that have dozens or hundreds of endpoints. The OpenAPI import feature allows you to automatically create all API endpoints from an OpenAPI (Swagger) specification file with just a few clicks.
+
+## What is OpenAPI?
+
+OpenAPI (formerly known as Swagger) is a specification format for describing REST APIs. It's a standard way to document APIs that includes:
+
+- All available endpoints
+- HTTP methods (GET, POST, PUT, DELETE, etc.)
+- Request and response schemas
+- Parameters (query, path, header, cookie)
+- Authentication requirements
+- And much more
+
+Many APIs provide their OpenAPI specification at a public URL, making it easy to import all their endpoints at once.
+
+## Benefits of Importing OpenAPI
+
+- **Save Time**: Import dozens or hundreds of APIs in seconds instead of creating them one by one
+- **Accuracy**: Automatically extract correct URLs, methods, parameters, and schemas
+- **Completeness**: Ensure you don't miss any endpoints
+- **Consistency**: All APIs follow the same structure from the specification
+
+## How to Import OpenAPI
+
+### Step 1: Find Your OpenAPI Specification URL
+
+First, you need the URL to your OpenAPI specification file. Common locations include:
+
+- \`https://api.example.com/openapi.json\`
+- \`https://api.example.com/swagger.json\`
+- \`https://api.example.com/v1/openapi.yaml\`
+- \`https://api.example.com/docs/openapi.json\`
+
+Many API providers document where to find their OpenAPI spec. You can also check:
+- API documentation pages
+- Developer portals
+- GitHub repositories
+- API explorer tools
+
+**Note**: The import feature supports both JSON and YAML formats, and works with both OpenAPI 3.x and Swagger 2.0 specifications.
+
+### Step 2: Navigate to the APIs Section
+
+1. Log in to the admin panel
+2. Navigate to the **APIs** section from the sidebar
+3. You'll see the **Import from OpenAPI** button next to the **Create API** button
+
+### Step 3: Import the Specification
+
+1. Click the **Import from OpenAPI** button
+2. A dialog will open asking for the OpenAPI URL
+3. Enter the full URL to your OpenAPI specification file
+4. Click **Import**
+
+The system will:
+- Fetch the OpenAPI specification from the URL
+- Parse all endpoints and their configurations
+- Extract HTTP methods, URLs, parameters, headers, and request schemas
+- Create all APIs in your database
+- Show you a summary of what was imported
+
+### Step 4: Review Import Results
+
+After importing, you'll see a summary showing:
+- **Number of APIs imported**: How many endpoints were successfully created
+- **Errors (if any)**: Any endpoints that couldn't be imported and why
+
+All successfully imported APIs will appear in your APIs list, ready to be used in your MCP tools.
+
+## What Gets Imported?
+
+The import process extracts and creates APIs with the following information:
+
+### Basic Information
+- **Name**: Extracted from \`operationId\`, \`summary\`, or generated from method and path
+- **Description**: Taken from the endpoint's \`description\` or \`summary\` field
+- **HTTP Method**: GET, POST, PUT, PATCH, DELETE, etc.
+- **URL**: Full URL combining the base server URL and endpoint path
+
+### Parameters
+- **Path Parameters**: Variables in the URL path (e.g., \`/users/{id}\`)
+- **Query Parameters**: URL query string parameters
+- **Headers**: Custom headers defined in the specification
+- **Cookies**: Cookie parameters if specified
+
+### Request Body Schema
+- **Payload Schema**: JSON Schema extracted from the \`requestBody\` definition
+- This schema is used for validation and can be referenced when creating tool mappings
+
+## Example: Importing a Weather API
+
+Let's say you want to import the OpenWeatherMap API. Here's how:
+
+1. Find their OpenAPI spec URL (e.g., \`https://api.openweathermap.org/openapi.json\`)
+2. Click **Import from OpenAPI** in the admin panel
+3. Paste the URL and click **Import**
+4. The system will create APIs for all endpoints like:
+   - \`GET /data/2.5/weather\` - Get current weather
+   - \`GET /data/2.5/forecast\` - Get weather forecast
+   - \`GET /geo/1.0/direct\` - Geocoding API
+   - And many more...
+
+All endpoints will be automatically configured with their parameters, headers, and schemas.
+
+## Handling Import Errors
+
+Sometimes, not all endpoints can be imported successfully. Common reasons include:
+
+- **Invalid URL format**: The endpoint URL couldn't be constructed properly
+- **Missing required fields**: The specification is missing critical information
+- **Database errors**: Issues saving to the database (rare)
+
+When errors occur:
+- The import will still succeed for valid endpoints
+- You'll see a detailed error message for each failed endpoint
+- You can manually create any failed endpoints if needed
+
+## After Importing
+
+Once your APIs are imported:
+
+1. **Review the APIs**: Check that all endpoints were imported correctly
+2. **Edit if Needed**: You can edit any API to adjust names, descriptions, or configurations
+3. **Create MCP Tools**: Use these APIs when creating tools for your MCP servers
+4. **Map Tools to APIs**: Connect your tools to the imported APIs
+
+## Best Practices
+
+### Verify the Specification
+- Test the OpenAPI URL in your browser first to ensure it's accessible
+- Check that the specification is valid and complete
+- Verify it's the version you want (some APIs have multiple versions)
+
+### Review Imported APIs
+- Check that API names are descriptive (edit if needed)
+- Verify URLs are correct (especially if the base URL changed)
+- Ensure parameters and schemas look correct
+
+### Organize After Import
+- Consider grouping related APIs (you can add prefixes to names)
+- Add descriptions to APIs that need clarification
+- Disable any APIs you don't plan to use
+
+### Keep APIs Updated
+- If the API specification changes, you can re-import
+- Note that re-importing won't automatically update existing APIs
+- You may need to delete and re-import, or manually update APIs
+
+## Troubleshooting
+
+### "Failed to fetch OpenAPI specification"
+- **Check the URL**: Ensure the URL is correct and accessible
+- **CORS Issues**: Some servers block cross-origin requests. You may need to download the file and host it yourself
+- **Authentication**: If the spec requires authentication, you may need to download it manually first
+
+### "No endpoints found"
+- The specification might not have a \`paths\` section
+- Check that the file is a valid OpenAPI specification
+- Verify it's not a different format (like GraphQL schema)
+
+### "Invalid URL format"
+- The base server URL might be malformed
+- Some specifications use relative URLs that need a base URL
+- Check the \`servers\` array in the OpenAPI spec
+
+### Some APIs Failed to Import
+- Check the error messages for specific reasons
+- Common issues: missing operation IDs, invalid schemas, or database constraints
+- You can manually create any failed APIs
+
+## Supported Formats
+
+The import feature supports:
+- **OpenAPI 3.0.x**: Full support for all features
+- **OpenAPI 3.1.x**: Full support for all features
+- **Swagger 2.0**: Converted to OpenAPI 3.0 format automatically
+- **JSON format**: \`.json\` files
+- **YAML format**: \`.yaml\` or \`.yml\` files (converted automatically)
+
+## Limitations
+
+- **Authentication**: The import doesn't automatically configure API authentication. You'll need to add authentication headers manually after import.
+- **Response Schemas**: Currently, only request body schemas are imported. Response schemas aren't stored but can be referenced from the original spec.
+- **Complex Schemas**: Very complex or circular schemas might be simplified during import.
+- **Custom Extensions**: OpenAPI extensions (like \`x-codegen\`) are not imported.
+
+## Next Steps
+
+After importing your APIs:
+
+1. **Create MCP Tools**: [Learn how to create tools](/blog/how-to-create-mcp-tools) that use these APIs
+2. **Map Tools to APIs**: [Understand how mappings work](/blog/how-mcp-to-api-mapping-works) to connect tools to APIs
+3. **Configure Authentication**: Add any required authentication headers to your APIs
+4. **Test Your APIs**: Verify that the imported APIs work correctly before using them in production
+
+## Conclusion
+
+The OpenAPI import feature is a powerful way to quickly set up multiple APIs from a specification file. Instead of manually creating dozens of API endpoints, you can import them all at once and start building your MCP tools immediately.
+
+Whether you're working with a third-party API that provides an OpenAPI spec, or you've documented your own API, the import feature will save you significant time and ensure accuracy.
+
+For more information, see our guides on [creating APIs manually](/blog/how-to-create-api) and [setting up MCP servers](/blog/how-to-configure-mcp-in-admin).`
   }
 ];
 
