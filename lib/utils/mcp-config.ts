@@ -1,3 +1,5 @@
+import { getBaseUrl } from './url';
+
 /**
  * Generates MCP client configuration JSON for a given MCP
  * 
@@ -7,8 +9,8 @@
  * discover and complete the OAuth flow automatically.
  */
 export function generateMCPConfig(mcpSlug: string, visibility: 'public' | 'private' = 'public', baseUrl: string = ''): string {
-  // Use the current origin if baseUrl is not provided
-  const serverUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+  // Use the provided baseUrl or get it from the utility function
+  const serverUrl = baseUrl || getBaseUrl();
   const mcpEndpoint = `${serverUrl}/api/mcp/${mcpSlug}`;
 
   const config: any = {
@@ -39,7 +41,7 @@ export function generateMCPConfig(mcpSlug: string, visibility: 'public' | 'priva
  * discover and complete the OAuth flow automatically.
  */
 export function generateClaudeDesktopConfig(mcpSlug: string, visibility: 'public' | 'private' = 'public', baseUrl: string = ''): string {
-  const serverUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+  const serverUrl = baseUrl || getBaseUrl();
   const mcpEndpoint = `${serverUrl}/api/mcp/${mcpSlug}`;
 
   const config: any = {

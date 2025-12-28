@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { generateMCPConfig, generateClaudeDesktopConfig } from '@/lib/utils/mcp-config';
+import { getBaseUrl } from '@/lib/utils/url';
 
 interface MCPConfigViewProps {
   mcpSlug: string;
@@ -65,7 +66,7 @@ export default function MCPConfigView({ mcpSlug, mcpVisibility = 'public' }: MCP
         <p className="text-xs text-blue-800 dark:text-blue-300">
           <strong>Endpoint URL:</strong>{' '}
           <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">
-            {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/mcp/{mcpSlug}
+            {getBaseUrl()}/api/mcp/{mcpSlug}
           </code>
         </p>
         {mcpVisibility === 'private' && (

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBaseUrl } from '@/lib/utils/url';
 
 /**
  * Catch-all route for /.well-known/*
@@ -12,7 +13,7 @@ export async function GET(
     const { path } = await params;
     const pathString = path.join('/');
     const url = new URL(request.url);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
+    const baseUrl = getBaseUrl(request);
     
     // Handle patterns like:
     // /.well-known/oauth-protected-resource/api/mcp/pepe

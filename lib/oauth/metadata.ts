@@ -1,18 +1,6 @@
 import { getMCPBySlug } from '@/app/admin/mcps/mcp-actions';
 import { ProtectedResourceMetadata, AuthorizationServerMetadata } from '@/lib/types/oauth';
-
-/**
- * Get the base URL for the application
- */
-function getBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL;
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return 'http://localhost:3000';
-}
+import { getBaseUrl } from '@/lib/utils/url';
 
 /**
  * Generate Protected Resource Metadata (RFC 9728)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { getMCPBySlug } from '@/app/admin/mcps/mcp-actions';
 import { createClient } from '@/lib/supabase/server';
+import { getBaseUrl } from '@/lib/utils/url';
 
 /**
  * OAuth 2.0 Dynamic Client Registration endpoint (RFC 7591)
@@ -54,7 +55,7 @@ export async function POST(
     }
     
     // Generate client ID (using Client ID Metadata Document format - HTTPS URL)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    const baseUrl = getBaseUrl(request);
     const { randomUUID } = await import('crypto');
     const clientId = `${baseUrl}/api/oauth/${mcpSlug}/clients/${randomUUID()}`;
     

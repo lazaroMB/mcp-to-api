@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMCPBySlug } from '@/app/admin/mcps/mcp-actions';
 import { getAuthorizationServerMetadata, getProtectedResourceMetadata } from '@/lib/oauth/metadata';
+import { getBaseUrl } from '@/lib/utils/url';
 
 /**
  * Debug endpoint to help troubleshoot OAuth flow
@@ -17,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: 'MCP not found' }, { status: 404 });
     }
     
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    const baseUrl = getBaseUrl(request);
     const prm = await getProtectedResourceMetadata(mcpSlug);
     const asm = await getAuthorizationServerMetadata(mcpSlug);
     

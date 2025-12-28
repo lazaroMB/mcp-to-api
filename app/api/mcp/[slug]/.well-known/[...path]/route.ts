@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBaseUrl } from '@/lib/utils/url';
 
 /**
  * Catch-all route for /api/mcp/[slug]/.well-known/*
@@ -11,7 +12,7 @@ export async function GET(
   try {
     const { slug, path } = await params;
     const url = new URL(request.url);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
+    const baseUrl = getBaseUrl(request);
     
     // Determine the well-known type from the path
     // e.g., /api/mcp/pepe/.well-known/openid-configuration

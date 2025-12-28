@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Field, FieldLabel } from '@/components/ui/field';
+import { getBaseUrl } from '@/lib/utils/url';
 
 export default function OAuthTokenPage() {
   const params = useParams();
@@ -20,7 +21,7 @@ export default function OAuthTokenPage() {
     // Generate PKCE and authorization URL
     const generateAuthUrl = async () => {
       try {
-        const baseUrl = window.location.origin;
+        const baseUrl = getBaseUrl();
         
         // Generate PKCE using Web Crypto API (browser)
         const array = new Uint8Array(32);
@@ -113,7 +114,7 @@ export default function OAuthTokenPage() {
 {`{
   "mcpServers": {
     "${mcpSlug}": {
-      "url": "${window.location.origin}/api/mcp/${mcpSlug}",
+      "url": "${getBaseUrl()}/api/mcp/${mcpSlug}",
       "headers": {
         "Authorization": "Bearer ${token}"
       }

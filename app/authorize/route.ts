@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBaseUrl } from '@/lib/utils/url';
 
 /**
  * Redirect route for /authorize
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
       const match = resource.match(/\/api\/mcp\/([^\/\?]+)/);
       if (match && match[1]) {
         const mcpSlug = match[1];
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
+        const baseUrl = getBaseUrl(request);
         
         // Reconstruct the authorize URL with all query parameters
         const authorizeUrl = new URL(`${baseUrl}/api/oauth/${mcpSlug}/authorize`);

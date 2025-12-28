@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getMCPBySlug } from '@/app/admin/mcps/mcp-actions';
 import { checkMCPAccess } from '@/lib/auth/mcp-access';
+import { getBaseUrl } from '@/lib/utils/url';
 import { randomBytes } from 'crypto';
 
 /**
@@ -51,7 +52,7 @@ export async function GET(
       // If this is a browser request (has Accept: text/html), show a user-friendly error page
       const acceptHeader = request.headers.get('accept') || '';
       if (acceptHeader.includes('text/html')) {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const baseUrl = getBaseUrl(request);
         const debugUrl = `${baseUrl}/api/oauth/${mcpSlug}/debug`;
         const receivedParams = Object.fromEntries(searchParams.entries());
         
@@ -186,7 +187,7 @@ export async function GET(
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
       scope: finalScope,
-      resource: resource || `${request.nextUrl.origin}/api/mcp/${mcpSlug}`,
+      resource: resource || `${getBaseUrl(request)}/api/mcp/${mcpSlug}`,
       user_id: user.id,
       mcp_id: mcp.id,
       expires_at: expiresAt.toISOString(),

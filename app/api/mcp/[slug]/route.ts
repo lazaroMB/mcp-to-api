@@ -8,6 +8,7 @@ import { trackToolUsage } from '@/lib/mcp/statistics';
 import { checkMCPAccess } from '@/lib/auth/mcp-access';
 import { validateAccessToken } from '@/lib/oauth/token';
 import { getProtectedResourceMetadata } from '@/lib/oauth/metadata';
+import { getBaseUrl } from '@/lib/utils/url';
 import { 
   MCPInitializeRequest,
   MCPInitializeResponse, 
@@ -41,7 +42,7 @@ export async function GET(
       );
     }
     
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    const baseUrl = getBaseUrl(request);
     const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
     
     // Get tools count for information
@@ -130,7 +131,7 @@ export async function POST(
     if (mcp.visibility === 'private') {
       // Private MCPs require Bearer token
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const baseUrl = getBaseUrl(request);
         const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
         const errorId = body.id !== null && body.id !== undefined ? body.id : '1';
         const errorResponse: JSONRPCResponse = {
@@ -154,7 +155,7 @@ export async function POST(
       
       if (!validation.valid) {
         const errorId = body.id !== null && body.id !== undefined ? body.id : '1';
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const baseUrl = getBaseUrl(request);
         const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
         const tokenUrl = `${baseUrl}/api/oauth/${slug}/token`;
         
@@ -200,7 +201,7 @@ export async function POST(
             message: 'Access denied',
           },
         };
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+        const baseUrl = getBaseUrl(request);
         const resourceMetadataUrl = `${baseUrl}/api/oauth/${slug}/.well-known/oauth-protected-resource`;
         return NextResponse.json(errorResponse, {
           status: 403,

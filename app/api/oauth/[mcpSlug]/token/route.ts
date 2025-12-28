@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getMCPBySlug } from '@/app/admin/mcps/mcp-actions';
 import { generateAccessToken, verifyPKCE } from '@/lib/oauth/token';
 import { OAuthToken } from '@/lib/types/oauth';
+import { getBaseUrl } from '@/lib/utils/url';
 
 export async function POST(
   request: NextRequest,
@@ -327,7 +328,7 @@ export async function POST(
             );
           }
           
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+          const baseUrl = getBaseUrl(request);
           const debugUrl = `${baseUrl}/api/debug/tokens/${mcpSlug}`;
           
           return NextResponse.json(

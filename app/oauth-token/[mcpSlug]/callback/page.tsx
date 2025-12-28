@@ -5,6 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardPanel } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { getBaseUrl } from '@/lib/utils/url';
 
 export default function OAuthCallbackPage() {
   const params = useParams();
@@ -61,7 +62,7 @@ export default function OAuthCallbackPage() {
         }
 
         // Exchange code for token
-        const baseUrl = window.location.origin;
+        const baseUrl = getBaseUrl();
         const clientId = `${baseUrl}/api/oauth/${mcpSlug}/clients/cursor-client`;
         const redirectUri = `${baseUrl}/oauth-token/${mcpSlug}/callback`;
 
@@ -183,7 +184,7 @@ export default function OAuthCallbackPage() {
 {`{
   "mcpServers": {
     "${mcpSlug}": {
-      "url": "${window.location.origin}/api/mcp/${mcpSlug}",
+      "url": "${getBaseUrl()}/api/mcp/${mcpSlug}",
       "headers": {
         "Authorization": "Bearer ${token}"
       }
