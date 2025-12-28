@@ -723,6 +723,749 @@ MCP to API mapping is a powerful system that allows you to bridge the gap betwee
 The key is matching tool inputs to API requirements through careful mapping configuration. Start simple with direct mappings, then add transformations as needed.
 
 For more information, see our guides on [configuring MCPs](/blog/how-to-configure-mcp-in-admin) and [creating APIs](/blog/how-to-create-api).`
+  },
+  {
+    slug: 'how-to-create-mcp-tools',
+    title: 'How to Create MCP Tools',
+    description: 'Learn how to define MCP tools that expose your APIs to AI assistants. Step-by-step guide to creating tools with input schemas, descriptions, and URIs.',
+    publishedAt: '2024-01-18',
+    author: 'API to MCP Team',
+    category: 'Configuration',
+    readingTime: 7,
+    content: `# How to Create MCP Tools
+
+MCP tools are the interface that AI assistants use to interact with your APIs. This guide will show you how to create and configure tools in the admin panel.
+
+## What are MCP Tools?
+
+MCP tools are functions that AI assistants can call. Each tool:
+- Has a name and description that AI assistants understand
+- Defines input parameters through a JSON Schema
+- Maps to an API endpoint that performs the actual work
+- Can be discovered and invoked by MCP-compatible clients
+
+## Creating Your First Tool
+
+### Step 1: Navigate to MCP Detail Page
+
+1. Log in to the admin panel
+2. Navigate to the **MCPs** section
+3. Click on an MCP to view its detail page
+4. Find the **Tools** section
+
+### Step 2: Click "Create Tool"
+
+In the Tools section, click the **Create Tool** button to open the tool creation form.
+
+### Step 3: Configure Tool Details
+
+#### Name
+
+The tool name is how AI assistants will identify and call your tool. Choose a clear, descriptive name:
+
+- **Good**: \`get_weather\`, \`create_customer\`, \`search_products\`
+- **Avoid**: \`tool1\`, \`api_call\`, \`function\`
+
+**Naming conventions**:
+- Use lowercase with underscores: \`get_user_profile\`
+- Be descriptive: \`get_weather_by_city\` not \`weather\`
+- Use action verbs: \`create\`, \`get\`, \`update\`, \`delete\`, \`search\`
+
+#### Description
+
+Write a clear description of what the tool does. This helps AI assistants understand when to use it:
+
+**Example**:
+\`\`\`
+Retrieves current weather information for a specified city. Returns temperature, conditions, humidity, and wind speed.
+\`\`\`
+
+**Tips for descriptions**:
+- Explain what the tool does, not how it works
+- Mention key parameters
+- Describe the expected output
+- Use natural language that AI assistants can understand
+
+#### Input Schema (JSON Schema)
+
+The input schema defines what parameters the tool accepts. This is a JSON Schema that describes the structure and validation rules.
+
+**Basic Example**:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "The name of the city"
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["celsius", "fahrenheit"],
+      "description": "Temperature unit"
+    }
+  },
+  "required": ["city"]
+}
+\`\`\`
+
+**Simplified Format Support**:
+
+The admin panel supports a simplified format for easier tool creation:
+
+**Type-based**:
+\`\`\`json
+{
+  "city": "string",
+  "temperature": "number",
+  "enabled": "boolean"
+}
+\`\`\`
+
+**Description-based**:
+\`\`\`json
+{
+  "city": "The name of the city",
+  "unit": "Temperature unit (celsius or fahrenheit)"
+}
+\`\`\`
+
+The system automatically converts simplified formats to full JSON Schema.
+
+**Common Schema Patterns**:
+
+**String with validation**:
+\`\`\`json
+{
+  "email": {
+    "type": "string",
+    "format": "email",
+    "description": "User email address"
+  }
+}
+\`\`\`
+
+**Number with range**:
+\`\`\`json
+{
+  "age": {
+    "type": "number",
+    "minimum": 0,
+    "maximum": 150,
+    "description": "Person's age"
+  }
+}
+\`\`\`
+
+**Enum (choice of values)**:
+\`\`\`json
+{
+  "status": {
+    "type": "string",
+    "enum": ["active", "inactive", "pending"],
+    "description": "Account status"
+  }
+}
+\`\`\`
+
+**Array**:
+\`\`\`json
+{
+  "tags": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    },
+    "description": "List of tags"
+  }
+}
+\`\`\`
+
+**Nested objects**:
+\`\`\`json
+{
+  "address": {
+    "type": "object",
+    "properties": {
+      "street": {"type": "string"},
+      "city": {"type": "string"},
+      "zip": {"type": "string"}
+    },
+    "required": ["street", "city"]
+  }
+}
+\`\`\`
+
+#### URI (Optional)
+
+The URI is an optional identifier for the tool. It's used for resource identification in some MCP contexts.
+
+**Examples**:
+- \`weather://current\`
+- \`api://users/create\`
+- \`mcp://weather/forecast\`
+
+If not specified, the system will generate one based on the tool name.
+
+### Step 4: Save the Tool
+
+Click **Create Tool** to save. The tool will appear in the Tools section of your MCP.
+
+## Complete Example
+
+Here's a complete example of creating a weather tool:
+
+**Name**: \`get_weather\`
+
+**Description**: \`Retrieves current weather conditions for a specified city. Returns temperature, humidity, wind speed, and conditions.\`
+
+**Input Schema**:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "The name of the city"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country code (e.g., 'US', 'GB')"
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["celsius", "fahrenheit"],
+      "default": "celsius",
+      "description": "Temperature unit"
+    }
+  },
+  "required": ["city"]
+}
+\`\`\`
+
+**URI**: \`weather://current\`
+
+## Best Practices
+
+### 1. Clear Naming
+
+- Use descriptive, action-oriented names
+- Follow consistent naming conventions
+- Avoid abbreviations unless widely understood
+
+### 2. Comprehensive Descriptions
+
+- Explain what the tool does
+- Mention important parameters
+- Describe expected behavior
+- Include any limitations or requirements
+
+### 3. Well-Defined Schemas
+
+- Use appropriate data types
+- Add descriptions to all fields
+- Mark required fields
+- Use enums for limited choices
+- Add validation where appropriate
+
+### 4. Required vs Optional Fields
+
+Only mark fields as required if they're truly necessary:
+- **Required**: Essential parameters (e.g., \`city\` for weather)
+- **Optional**: Nice-to-have parameters (e.g., \`unit\` with a default)
+
+### 5. Schema Validation
+
+Add validation to help AI assistants provide correct inputs:
+- String formats: \`email\`, \`date\`, \`uri\`
+- Number ranges: \`minimum\`, \`maximum\`
+- String patterns: \`pattern\` with regex
+- Array constraints: \`minItems\`, \`maxItems\`
+
+## Common Patterns
+
+### Search Tools
+
+\`\`\`json
+{
+  "query": {
+    "type": "string",
+    "description": "Search query"
+  },
+  "limit": {
+    "type": "number",
+    "minimum": 1,
+    "maximum": 100,
+    "default": 10,
+    "description": "Maximum number of results"
+  }
+}
+\`\`\`
+
+### Creation Tools
+
+\`\`\`json
+{
+  "name": {
+    "type": "string",
+    "description": "Resource name"
+  },
+  "data": {
+    "type": "object",
+    "description": "Additional resource data"
+  }
+}
+\`\`\`
+
+### Update Tools
+
+\`\`\`json
+{
+  "id": {
+    "type": "string",
+    "description": "Resource identifier"
+  },
+  "updates": {
+    "type": "object",
+    "description": "Fields to update"
+  }
+}
+\`\`\`
+
+## Next Steps
+
+After creating your tool:
+
+1. **Map Tool to API**: Connect the tool to an API endpoint
+2. **Test the Tool**: Verify it works with sample inputs
+3. **Refine the Schema**: Adjust based on actual usage
+
+## Troubleshooting
+
+**Tool not appearing?**
+- Check that the MCP is enabled
+- Verify the tool was saved successfully
+- Refresh the page
+
+**Schema validation errors?**
+- Ensure valid JSON syntax
+- Check that types are correct
+- Verify required fields are properly marked
+
+**AI assistant not using tool?**
+- Improve the description to be more specific
+- Check that the tool name is clear
+- Ensure the schema matches expected inputs
+
+## Conclusion
+
+Creating MCP tools is about defining clear interfaces that AI assistants can understand and use. Focus on descriptive names, comprehensive descriptions, and well-structured input schemas.
+
+For more information, see our guides on [configuring MCPs](/blog/how-to-configure-mcp-in-admin), [creating APIs](/blog/how-to-create-api), and [mapping tools to APIs](/blog/how-mcp-to-api-mapping-works).`
+  },
+  {
+    slug: 'complete-admin-guide',
+    title: 'Complete Admin Guide: Setting Up Your First MCP Server',
+    description: 'A comprehensive step-by-step guide to setting up your first MCP server from start to finish. Learn how to create APIs, MCPs, tools, and mappings.',
+    publishedAt: '2024-01-19',
+    author: 'API to MCP Team',
+    category: 'Tutorial',
+    readingTime: 15,
+    content: `# Complete Admin Guide: Setting Up Your First MCP Server
+
+This comprehensive guide will walk you through the complete workflow of setting up an MCP server that connects to your APIs. Follow these steps in order to create a fully functional MCP server.
+
+## Overview
+
+Setting up an MCP server involves four main steps:
+
+1. **Create API endpoints** - Define the REST APIs your tools will call
+2. **Create an MCP server** - Set up the MCP server configuration
+3. **Create MCP tools** - Define the tools that AI assistants can use
+4. **Map tools to APIs** - Connect tools to their corresponding API endpoints
+
+Let's go through each step in detail.
+
+## Step 1: Create an API Endpoint
+
+Before you can map tools to APIs, you need to create the API endpoints.
+
+### Navigate to APIs
+
+1. Log in to the admin panel
+2. Go to the **APIs** section from the sidebar
+3. Click the **Create API** button
+
+### Configure the API
+
+Fill in the following information:
+
+**Name**: A descriptive name (e.g., "Get Weather Data")
+
+**Method**: Select the HTTP method (GET, POST, PUT, PATCH, DELETE, etc.)
+
+**URL**: The full API endpoint URL. You can use variables like \`{city}\` that will be replaced with payload values.
+
+**Description**: Optional description of what the API does
+
+**Headers**: Add any required headers. You can use variables: \`Authorization: Bearer {token}\`
+
+**Cookies**: Add any required cookies with variable support
+
+**URL Parameters**: Add query parameters if needed, with variable support
+
+**Payload Schema**: For POST/PUT/PATCH requests, define a JSON Schema describing the expected request body structure
+
+**Enable/Disable**: Toggle to enable or disable the API
+
+### Save the API
+
+Click **Create API** to save. The API will appear in your APIs list.
+
+**Example API Configuration**:
+
+- **Name**: Get Weather Data
+- **Method**: GET
+- **URL**: \`https://api.weather.com/v1/current\`
+- **Headers**: 
+  - \`X-API-Key: {apiKey}\`
+  - \`Accept: application/json\`
+- **URL Parameters**:
+  - \`location: {city}\`
+  - \`units: {unit}\`
+
+For detailed information, see our guide on [creating APIs](/blog/how-to-create-api).
+
+## Step 2: Create an MCP Server
+
+Now create the MCP server that will host your tools.
+
+### Navigate to MCPs
+
+1. Go to the **MCPs** section from the sidebar
+2. Click the **Create MCP** button
+
+### Configure the MCP
+
+**Name**: A descriptive name (e.g., "Weather API MCP")
+
+**Slug**: URL-friendly identifier. Auto-generated from name, or enter manually. Must be lowercase with hyphens only.
+
+**Enable MCP**: Toggle to enable or disable the MCP server
+
+### Save the MCP
+
+Click **Create MCP** to save. You'll be redirected to the MCP detail page where you can add tools.
+
+**Example MCP Configuration**:
+
+- **Name**: Weather API MCP
+- **Slug**: \`weather-api-mcp\`
+- **Enabled**: Yes
+
+The MCP will be accessible at: \`/api/mcp/weather-api-mcp\`
+
+For detailed information, see our guide on [configuring MCPs](/blog/how-to-configure-mcp-in-admin).
+
+## Step 3: Create MCP Tools
+
+Define the tools that AI assistants can use to interact with your APIs.
+
+### Navigate to MCP Detail Page
+
+1. From the MCPs list, click on your MCP
+2. Find the **Tools** section
+3. Click **Create Tool**
+
+### Configure the Tool
+
+**Name**: Tool identifier (e.g., \`get_weather\`). Use lowercase with underscores.
+
+**Description**: Clear description of what the tool does. This helps AI assistants understand when to use it.
+
+**Input Schema**: JSON Schema defining the tool's input parameters. You can use simplified formats that are automatically converted.
+
+**URI**: Optional URI identifier for the tool
+
+### Save the Tool
+
+Click **Create Tool** to save. The tool will appear in the Tools section.
+
+**Example Tool Configuration**:
+
+- **Name**: \`get_weather\`
+- **Description**: \`Retrieves current weather conditions for a specified city. Returns temperature, humidity, wind speed, and conditions.\`
+- **Input Schema**:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "The name of the city"
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["celsius", "fahrenheit"],
+      "default": "celsius",
+      "description": "Temperature unit"
+    }
+  },
+  "required": ["city"]
+}
+\`\`\`
+
+For detailed information, see our guide on [creating MCP tools](/blog/how-to-create-mcp-tools).
+
+## Step 4: Map Tools to APIs
+
+Connect your tools to their corresponding API endpoints and configure how tool arguments map to API payloads.
+
+### Open Tool Mapping
+
+1. In the Tools section, find the tool you want to map
+2. Click **Map to API** or the mapping button
+
+### Select an API
+
+1. In the mapping form, select the API endpoint you created in Step 1 from the dropdown
+2. The form will show information about the selected API
+
+### Configure Field Mappings
+
+Map fields from the tool's input schema to the API's payload fields.
+
+For each mapping:
+
+**Tool Field**: Select a field from the tool's input schema
+
+**API Field**: Select the corresponding field in the API payload
+
+**Transformation**: Choose how to transform the value:
+- **Direct**: Pass value as-is
+- **Constant**: Use a fixed value
+- **Expression**: Transform using JavaScript expression
+
+**Example Mappings**:
+
+- Tool field \`city\` → API field \`location\` (direct)
+- Tool field \`unit\` → API field \`temperature_unit\` (direct)
+- Constant value \`"v1"\` → API field \`api_version\` (constant)
+
+### Save the Mapping
+
+Click **Create Mapping** to save. The tool is now connected to your API endpoint.
+
+**Example Mapping Configuration**:
+
+- **API**: Get Weather Data
+- **Field Mappings**:
+  - \`city\` → \`location\` (direct)
+  - \`unit\` → \`units\` (direct)
+  - \`apiKey\` → Header \`X-API-Key: {apiKey}\`
+
+For detailed information, see our guide on [MCP to API mapping](/blog/how-mcp-to-api-mapping-works).
+
+## Testing Your MCP Server
+
+Once configured, your MCP server is ready to use.
+
+### Access Your MCP Server
+
+Your MCP server is available at:
+
+\`\`\`
+/api/mcp/[your-mcp-slug]
+\`\`\`
+
+For example: \`/api/mcp/weather-api-mcp\`
+
+### Test Endpoints
+
+You can test your MCP server using these endpoints:
+
+**List Tools**:
+\`\`\`
+GET /api/mcp/[slug]/tools
+\`\`\`
+
+**Call a Tool**:
+\`\`\`
+POST /api/mcp/[slug]/tools/call
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "city": "San Francisco",
+      "unit": "celsius"
+    }
+  },
+  "id": 1
+}
+\`\`\`
+
+**List Resources**:
+\`\`\`
+GET /api/mcp/[slug]/resources
+\`\`\`
+
+### Using with MCP Clients
+
+Your MCP server is compatible with any MCP client. Connect using:
+
+- **URL**: Your domain + \`/api/mcp/[slug]\`
+- **Protocol**: MCP (JSON-RPC 2.0)
+
+## Complete Workflow Example
+
+Let's walk through a complete example: creating a weather MCP server.
+
+### 1. Create API
+
+**API Configuration**:
+- Name: Get Weather Data
+- Method: GET
+- URL: \`https://api.weather.com/v1/current\`
+- Headers: \`X-API-Key: {apiKey}\`
+- URL Parameters: \`location: {city}\`, \`units: {unit}\`
+
+### 2. Create MCP
+
+**MCP Configuration**:
+- Name: Weather API MCP
+- Slug: \`weather-api-mcp\`
+- Enabled: Yes
+
+### 3. Create Tool
+
+**Tool Configuration**:
+- Name: \`get_weather\`
+- Description: Retrieves current weather for a city
+- Input Schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "city": {"type": "string"},
+    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+    "apiKey": {"type": "string"}
+  },
+  "required": ["city", "apiKey"]
+}
+\`\`\`
+
+### 4. Map Tool to API
+
+**Mapping Configuration**:
+- API: Get Weather Data
+- Mappings:
+  - \`city\` → URL parameter \`location\`
+  - \`unit\` → URL parameter \`units\`
+  - \`apiKey\` → Header \`X-API-Key\`
+
+### Result
+
+AI assistants can now call \`get_weather\` with:
+\`\`\`json
+{
+  "city": "San Francisco",
+  "unit": "celsius",
+  "apiKey": "your-api-key"
+}
+\`\`\`
+
+The system will:
+1. Transform arguments to API format
+2. Call \`https://api.weather.com/v1/current?location=San%20Francisco&units=celsius\`
+3. Include header \`X-API-Key: your-api-key\`
+4. Return the weather data to the AI assistant
+
+## Best Practices
+
+### 1. Start Simple
+
+Begin with a single API, one tool, and direct field mappings. Add complexity as needed.
+
+### 2. Use Descriptive Names
+
+- APIs: "Get Weather Data" not "API 1"
+- MCPs: "Weather API MCP" not "MCP 1"
+- Tools: \`get_weather\` not \`tool1\`
+
+### 3. Document Everything
+
+- Add descriptions to APIs
+- Write clear tool descriptions
+- Document field mappings
+
+### 4. Test Incrementally
+
+- Test the API directly first
+- Verify the tool schema
+- Test the mapping with sample data
+- Test the complete flow
+
+### 5. Handle Errors
+
+- Check API responses
+- Validate tool inputs
+- Handle missing mappings
+- Provide clear error messages
+
+## Troubleshooting
+
+### MCP Not Found
+
+- Check that the MCP is enabled
+- Verify the slug matches exactly
+- Ensure you're using the correct endpoint format
+
+### Tool Not Working
+
+- Verify the tool has a mapping
+- Check that the API is enabled
+- Ensure field mappings are correct
+- Test the API directly
+
+### Mapping Issues
+
+- Verify field names match exactly
+- Check transformation types
+- Ensure required fields are mapped
+- Test with sample data
+
+### API Errors
+
+- Verify the API URL is correct
+- Check headers and authentication
+- Ensure variables are properly replaced
+- Test the API endpoint directly
+
+## Next Steps
+
+After setting up your first MCP server:
+
+1. **Add More Tools**: Create additional tools for different operations
+2. **Create Multiple MCPs**: Organize tools by purpose or API group
+3. **Refine Mappings**: Optimize field mappings based on usage
+4. **Monitor Usage**: Check statistics to see which tools are used most
+
+## Additional Resources
+
+- [How to Configure MCP in the Admin Panel](/blog/how-to-configure-mcp-in-admin)
+- [How to Create an API](/blog/how-to-create-api)
+- [How to Create MCP Tools](/blog/how-to-create-mcp-tools)
+- [How MCP to API Mapping Works](/blog/how-mcp-to-api-mapping-works)
+
+## Conclusion
+
+Setting up an MCP server is a straightforward process when you follow these steps in order. Start with creating your APIs, then set up the MCP server, define your tools, and finally map them together.
+
+Remember to test each step as you go, and don't hesitate to refine your configuration based on actual usage.`
   }
 ];
 
