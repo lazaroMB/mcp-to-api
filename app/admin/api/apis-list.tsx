@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { API } from '@/lib/types/api';
 import APIForm from './api-form';
 import ImportDialog from './import-dialog';
+import AddToMCPDialog from './add-to-mcp-dialog';
 
 interface APIsListProps {
   initialAPIs: API[];
@@ -15,6 +16,8 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
   const [editingAPI, setEditingAPI] = useState<API | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [addToMCPDialogOpen, setAddToMCPDialogOpen] = useState(false);
+  const [apiForMCP, setApiForMCP] = useState<API | null>(null);
 
   const handleCreate = () => {
     setEditingAPI(null);
@@ -65,6 +68,11 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
   const handleFormCancel = () => {
     setShowForm(false);
     setEditingAPI(null);
+  };
+
+  const handleAddToMCP = (api: API) => {
+    setApiForMCP(api);
+    setAddToMCPDialogOpen(true);
   };
 
   if (showForm) {
@@ -180,6 +188,12 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
                     <td className="px-6 py-4 text-right text-sm">
                       <div className="flex items-center justify-end gap-3">
                         <button
+                          onClick={() => handleAddToMCP(api)}
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          Add to MCP
+                        </button>
+                        <button
                           onClick={() => handleEdit(api)}
                           className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
                         >
@@ -200,6 +214,19 @@ export default function APIsList({ initialAPIs }: APIsListProps) {
             </table>
           </div>
         </div>
+      )}
+
+      {apiForMCP && (
+        <AddToMCPDialog
+          api={apiForMCP}
+          open={addToMCPDialogOpen}
+          onOpenChange={(open) => {
+            setAddToMCPDialogOpen(open);
+            if (!open) {
+              setApiForMCP(null);
+            }
+          }}
+        />
       )}
     </div>
   );

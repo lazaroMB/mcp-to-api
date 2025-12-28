@@ -1679,6 +1679,373 @@ The OpenAPI import feature is a powerful way to quickly set up multiple APIs fro
 Whether you're working with a third-party API that provides an OpenAPI spec, or you've documented your own API, the import feature will save you significant time and ensure accuracy.
 
 For more information, see our guides on [creating APIs manually](/blog/how-to-create-api) and [setting up MCP servers](/blog/how-to-configure-mcp-in-admin).`
+  },
+  {
+    slug: 'how-to-add-api-to-mcp',
+    title: 'How to Add an API to an MCP with One Click',
+    description: 'Learn how to quickly add any API to an MCP server with automatic tool creation and mapping. The "Add to MCP" feature streamlines the process of exposing APIs as MCP tools.',
+    publishedAt: '2024-01-25',
+    author: 'API to MCP Team',
+    category: 'Tutorial',
+    readingTime: 6,
+    content: `# How to Add an API to an MCP with One Click
+
+The "Add to MCP" feature is a powerful time-saver that automatically creates a tool from your API and configures all the mappings. Instead of manually creating a tool, defining its input schema, and setting up field mappings, you can do it all with a single click.
+
+## What is "Add to MCP"?
+
+"Add to MCP" is a feature that:
+- **Automatically creates a tool** from your API configuration
+- **Generates the input schema** based on your API's payload schema or URL parameters
+- **Creates default mappings** that map tool fields to API fields one-to-one
+- **Configures everything** so your tool is ready to use immediately
+
+This feature is perfect when you want to quickly expose an API as an MCP tool without manual configuration.
+
+## When to Use "Add to MCP"
+
+Use this feature when:
+- ✅ You want to quickly expose an API as a tool
+- ✅ Your API's payload schema matches what you want the tool to accept
+- ✅ You're okay with one-to-one field mappings (you can customize later)
+- ✅ You want to get started quickly and refine later
+
+Consider manual tool creation when:
+- ⚠️ You need complex field transformations
+- ⚠️ Your tool needs a different input schema than your API
+- ⚠️ You want to combine multiple APIs into one tool
+
+## How to Use "Add to MCP"
+
+### Method 1: From the API List
+
+1. **Navigate to APIs**: Go to the **APIs** section in the admin panel
+2. **Find your API**: Locate the API you want to add to an MCP
+3. **Click "Add to MCP"**: Click the **Add to MCP** button in the Actions column
+4. **Select or Create MCP**: 
+   - Choose an existing MCP from the dropdown, or
+   - Click "Create New MCP" to create one on the fly
+5. **Configure**: The system will automatically create the tool and open the MCP configuration page
+
+### Method 2: From the API Edit Form
+
+1. **Edit an API**: Open any API for editing
+2. **Click "Add to MCP"**: Find the **Add to MCP** button in the form footer
+3. **Select or Create MCP**: Choose your MCP or create a new one
+4. **Auto-configure**: The tool will be created and you'll be taken to configure it
+
+## What Happens Automatically
+
+When you use "Add to MCP", the system automatically:
+
+### 1. Creates the Tool
+
+The tool is created with:
+- **Name**: Generated from the API name (sanitized for tool naming)
+- **Description**: Uses the API description or generates one from the method and name
+- **Input Schema**: Generated from your API's payload schema or URL parameters
+- **URI**: Auto-generated in the format \`tool://tool_name\`
+
+**Example**:
+- API Name: \`Get Weather Data\`
+- Generated Tool Name: \`get_weather_data\`
+- Generated URI: \`tool://get_weather_data\`
+
+### 2. Generates Input Schema
+
+The input schema is created based on your API configuration:
+
+#### If API Has Payload Schema
+
+If your API has a \`payload_schema\` defined, the tool's input schema will match it:
+
+**API Payload Schema**:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "The city name"
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["celsius", "fahrenheit"]
+    }
+  },
+  "required": ["city"]
+}
+\`\`\`
+
+**Generated Tool Input Schema**:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "The city name"
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["celsius", "fahrenheit"]
+    }
+  },
+  "required": ["city", "unit"]
+}
+\`\`\`
+
+#### If API Has URL Parameters
+
+If your API has no payload schema but has URL parameters, the system creates an input schema from those parameters:
+
+**API Configuration**:
+- URL: \`/api/users/{userId}/posts\`
+- URL Params: \`[{ name: "page", value: "{page}" }, { name: "limit", value: "{limit}" }]\`
+
+**Generated Tool Input Schema**:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "userId parameter from URL path"
+    },
+    "page": {
+      "type": "string",
+      "description": "page parameter (used in page URL parameter)"
+    },
+    "limit": {
+      "type": "string",
+      "description": "limit parameter (used in limit URL parameter)"
+    }
+  },
+  "required": ["userId", "page", "limit"]
+}
+\`\`\`
+
+### 3. Creates Default Mappings
+
+The system creates one-to-one field mappings automatically:
+
+**Example Mappings**:
+- Tool field \`city\` → API field \`city\` (direct)
+- Tool field \`unit\` → API field \`unit\` (direct)
+- Tool field \`userId\` → URL variable \`{userId}\` (direct)
+- Tool field \`page\` → URL parameter \`page\` with value \`{page}\` (direct)
+
+All mappings use **direct transformation**, meaning values are passed as-is. You can customize these later if needed.
+
+## After Adding to MCP
+
+Once you've added an API to an MCP, you'll be taken to the MCP detail page where:
+
+1. **The tool is highlighted**: The newly created tool is shown in edit mode
+2. **Mapping is visible**: You can see the API mapping section with the default mappings
+3. **Ready to customize**: You can immediately edit the tool or mappings if needed
+
+### Customizing the Tool
+
+You can customize:
+- **Tool name**: Change it to something more descriptive
+- **Description**: Update to better explain what the tool does
+- **Input schema**: Modify parameters, types, or add/remove fields
+- **Mappings**: Adjust field mappings, add transformations, or change mappings
+
+### Testing the Tool
+
+After creation, you can:
+1. **View the tool**: See all its details in the MCP detail page
+2. **Check the mapping**: Verify the API mapping is correct
+3. **Test via MCP**: Use an MCP client to test the tool
+4. **Review logs**: Check tool usage statistics if available
+
+## Handling Duplicates
+
+The system automatically prevents duplicate tools:
+
+- **Same API, Same MCP**: If you try to add the same API to an MCP twice, it will find the existing tool instead of creating a duplicate
+- **Unique Names**: If a tool name already exists, the system appends \`_2\`, \`_3\`, etc. to make it unique
+- **Smart Detection**: The system checks for existing tools before creating new ones
+
+## Examples
+
+### Example 1: Adding a Weather API
+
+**API Configuration**:
+- Name: \`Get Current Weather\`
+- Method: \`GET\`
+- URL: \`https://api.weather.com/v1/current\`
+- Payload Schema: \`{ "city": "string", "unit": "string" }\`
+
+**Result**:
+- Tool Name: \`get_current_weather\`
+- Input Schema: Matches payload schema
+- Mappings: \`city → city\`, \`unit → unit\`
+
+### Example 2: Adding a REST API with URL Parameters
+
+**API Configuration**:
+- Name: \`Get User Posts\`
+- Method: \`GET\`
+- URL: \`/api/users/{userId}/posts\`
+- URL Params: \`[{ name: "page", value: "{page}" }]\`
+- No Payload Schema
+
+**Result**:
+- Tool Name: \`get_user_posts\`
+- Input Schema: \`{ userId: string, page: string }\`
+- Mappings: \`userId → {userId}\` (URL path), \`page → page\` (URL param)
+
+### Example 3: Adding a POST API
+
+**API Configuration**:
+- Name: \`Create User\`
+- Method: \`POST\`
+- URL: \`https://api.example.com/users\`
+- Payload Schema: \`{ "name": "string", "email": "string", "age": "number" }\`
+
+**Result**:
+- Tool Name: \`create_user\`
+- Input Schema: Matches payload schema with all three fields
+- Mappings: All fields mapped directly
+
+## Best Practices
+
+### 1. Review Before Adding
+
+Before adding an API to an MCP:
+- ✅ Ensure the API is properly configured
+- ✅ Verify the payload schema or URL parameters are correct
+- ✅ Check that the API name is descriptive
+
+### 2. Customize After Creation
+
+After automatic creation:
+- Edit the tool name if the auto-generated one isn't ideal
+- Update the description to be more specific
+- Adjust mappings if you need transformations
+- Add or remove input schema fields as needed
+
+### 3. Test Immediately
+
+After adding:
+- Test the tool with sample inputs
+- Verify the API receives the correct data
+- Check that responses are formatted correctly
+
+### 4. Organize Your Tools
+
+- Use consistent naming conventions
+- Group related tools in the same MCP
+- Add clear descriptions to help AI assistants understand when to use each tool
+
+## Troubleshooting
+
+### Tool Created But No Input Schema
+
+**Problem**: Tool shows "No properties defined" warning
+
+**Solutions**:
+- Check that your API has a payload schema defined
+- If using URL parameters, ensure they have variable placeholders like \`{paramName}\`
+- Manually edit the tool to add an input schema
+
+### Mappings Not Working
+
+**Problem**: Tool calls don't reach the API correctly
+
+**Solutions**:
+- Verify the API mapping is configured (check the mapping section)
+- Ensure field names match between tool and API
+- Check that the API is enabled
+- Review the mapping configuration
+
+### Duplicate Tool Created
+
+**Problem**: Multiple tools created for the same API
+
+**Solutions**:
+- The system should prevent this automatically
+- If it happens, delete the duplicate tools
+- Check that you're not clicking "Add to MCP" multiple times rapidly
+
+### Tool Name Conflicts
+
+**Problem**: Tool name has \`_2\` or \`_3\` appended
+
+**Solutions**:
+- This is automatic when a name already exists
+- You can edit the tool name to something more descriptive
+- Consider using more specific names to avoid conflicts
+
+## Advanced: Customizing After Creation
+
+After the automatic creation, you have full control:
+
+### Edit Tool Input Schema
+
+1. Go to the MCP detail page
+2. Find your tool
+3. Click **Edit**
+4. Modify the input schema JSON
+5. Save changes
+
+### Adjust Field Mappings
+
+1. Find the tool's **API Mapping** section
+2. Click **Edit Mapping** or **Add Mapping**
+3. Modify field mappings:
+   - Change direct mappings
+   - Add constant values
+   - Add expression transformations
+4. Save the mapping
+
+### Add Multiple APIs to One Tool
+
+While "Add to MCP" creates one tool per API, you can:
+1. Create a tool manually
+2. Add multiple mappings to different APIs
+3. Use conditional logic in transformations
+
+## Comparison: Automatic vs Manual
+
+Here's a quick comparison to help you decide:
+
+**Speed**:
+- **Add to MCP**: ⚡ Very fast - one click and you're done
+- **Manual Creation**: 🐢 Slower - requires multiple steps
+
+**Input Schema**:
+- **Add to MCP**: Auto-generated from API payload schema or URL parameters
+- **Manual Creation**: You define it manually with full control
+
+**Mappings**:
+- **Add to MCP**: One-to-one default mappings (all fields mapped directly)
+- **Manual Creation**: Fully customizable from the start
+
+**Best For**:
+- **Add to MCP**: Quick setup, prototyping, simple APIs
+- **Manual Creation**: Complex requirements, custom transformations, advanced use cases
+
+**Customization**:
+- **Add to MCP**: Can customize after creation (edit tool, modify mappings)
+- **Manual Creation**: Customize during creation with immediate control
+
+## Conclusion
+
+The "Add to MCP" feature is a powerful way to quickly expose your APIs as MCP tools. It handles all the tedious setup work automatically, letting you focus on what matters: making your APIs accessible to AI assistants.
+
+While the automatic configuration is great for getting started, remember that you can always customize the tool, input schema, and mappings afterward to fit your exact needs.
+
+**Next Steps**:
+1. Try adding one of your APIs to an MCP
+2. Review the automatically generated tool and mappings
+3. Customize as needed for your use case
+4. Test the tool with an MCP client
+
+For more information, see our guides on [creating MCP tools manually](/blog/how-to-create-mcp-tools), [understanding mappings](/blog/how-mcp-to-api-mapping-works), and [configuring MCPs](/blog/how-to-configure-mcp-in-admin).`
   }
 ];
 

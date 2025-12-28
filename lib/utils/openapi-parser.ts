@@ -40,7 +40,7 @@ function normalizeMethod(method: string): HTTPMethod {
 
 /**
  * Extracts path parameters from OpenAPI path template
- * e.g., /users/{id} -> [{ name: 'id', value: '' }]
+ * e.g., /users/{id} -> [{ name: 'id', value: '{id}' }]
  */
 function extractPathParams(path: string): Array<{ name: string; value: string }> {
   const params: Array<{ name: string; value: string }> = [];
@@ -48,7 +48,9 @@ function extractPathParams(path: string): Array<{ name: string; value: string }>
   let match;
 
   while ((match = paramRegex.exec(path)) !== null) {
-    params.push({ name: match[1], value: '' });
+    const paramName = match[1];
+    // Set value as variable placeholder so it can be replaced
+    params.push({ name: paramName, value: `{${paramName}}` });
   }
 
   return params;
@@ -56,14 +58,30 @@ function extractPathParams(path: string): Array<{ name: string; value: string }>
 
 /**
  * Converts OpenAPI parameter to KeyValuePair format
+ * For query parameters, uses variable placeholder {paramName} so values can be replaced
+ * For headers/cookies, uses default/example values or variable placeholder
  */
-function convertParameters(parameters: any[] = []): Array<{ name: string; value: string }> {
+function convertParameters(parameters: any[] = [], useVariablePlaceholders: boolean = false): Array<{ name: string; value: string }> {
   return parameters
     .filter((param) => param.in === 'query' || param.in === 'header' || param.in === 'cookie')
-    .map((param) => ({
-      name: param.name || '',
-      value: param.default || param.example || '',
-    }));
+    .map((param) => {
+      const paramName = param.name || '';
+      let value = '';
+      
+      if (useVariablePlaceholders || param.in === 'query') {
+        // For query params, always use variable placeholder
+        // For headers/cookies, use variable placeholder if useVariablePlaceholders is true
+        value = `{${paramName}}`;
+      } else {
+        // For headers/cookies, use default/example if available, otherwise variable placeholder
+        value = param.default || param.example || `{${paramName}}`;
+      }
+      
+      return {
+        name: paramName,
+        value: value,
+      };
+    });
 }
 
 /**
@@ -161,14 +179,60 @@ export async function parseOpenAPIToAPIs(openAPIUrl: string): Promise<APIFormDat
 
       // Extract query, header, and cookie parameters
       const parameters = operation.parameters || [];
-      const queryParams = convertParameters(parameters.filter((p: any) => p.in === 'query'));
-      const headers = convertParameters(parameters.filter((p: any) => p.in === 'header'));
-      const cookies = convertParameters(parameters.filter((p: any) => p.in === 'cookie'));
+      const queryParams = convertParameters(parameters.filter((p: any) => p.in === 'query'), true);
+      const headers = convertParameters(parameters.filter((p: any) => p.in === 'header'), false);
+      const cookies = convertParameters(parameters.filter((p: any) => p.in === 'cookie'), false);
 
       // Extract request body schema
       let payloadSchema: Record<string, any> | null = null;
       if (operation.requestBody) {
         payloadSchema = convertSchemaToJSONSchema(operation.requestBody);
+      }
+      
+      // If no payload schema but we have URL parameters, generate one from parameters
+      if (!payloadSchema && (pathParams.length > 0 || queryParams.length > 0)) {
+        const properties: Record<string, any> = {};
+        const required: string[] = [];
+        
+        // Add path parameters
+        for (const param of pathParams) {
+          if (param.name) {
+            properties[param.name] = {
+              type: 'string',
+              description: `${param.name} path parameter`,
+            };
+            required.push(param.name);
+          }
+        }
+        
+        // Add query parameters
+        for (const param of queryParams) {
+          if (param.name && !properties[param.name]) {
+            // Find the parameter definition to get type and description
+            const paramDef = parameters.find((p: any) => p.name === param.name && p.in === 'query');
+            const paramSchema = paramDef?.schema || {};
+            
+            properties[param.name] = {
+              type: paramSchema.type || 'string',
+              description: paramDef?.description || `${param.name} query parameter`,
+              ...(paramSchema.enum && { enum: paramSchema.enum }),
+              ...(paramSchema.format && { format: paramSchema.format }),
+            };
+            
+            // Add to required if parameter is required
+            if (paramDef?.required !== false) {
+              required.push(param.name);
+            }
+          }
+        }
+        
+        if (Object.keys(properties).length > 0) {
+          payloadSchema = {
+            type: 'object',
+            properties,
+            required,
+          };
+        }
       }
 
       // Generate API name from operationId, summary, or path+method

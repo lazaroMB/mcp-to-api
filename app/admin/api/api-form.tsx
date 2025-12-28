@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { API, APIFormData, KeyValuePair, HTTPMethod } from '@/lib/types/api';
+import AddToMCPDialog from './add-to-mcp-dialog';
 
 interface APIFormProps {
   api?: API | null;
@@ -26,6 +27,7 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
   const [schemaText, setSchemaText] = useState(
     api?.payload_schema ? JSON.stringify(api.payload_schema, null, 2) : ''
   );
+  const [addToMCPDialogOpen, setAddToMCPDialogOpen] = useState(false);
 
   const methods: HTTPMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
@@ -429,6 +431,16 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
       </div>
 
       <div className="flex gap-3 pt-4">
+        {api && (
+          <button
+            type="button"
+            onClick={() => setAddToMCPDialogOpen(true)}
+            disabled={isSubmitting}
+            className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+          >
+            Add to MCP
+          </button>
+        )}
         <button
           type="submit"
           disabled={isSubmitting}
@@ -445,6 +457,14 @@ export default function APIForm({ api, onSuccess, onCancel }: APIFormProps) {
           Cancel
         </button>
       </div>
+
+      {api && (
+        <AddToMCPDialog
+          api={api}
+          open={addToMCPDialogOpen}
+          onOpenChange={setAddToMCPDialogOpen}
+        />
+      )}
     </form>
   );
 }

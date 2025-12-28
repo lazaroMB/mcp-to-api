@@ -16,6 +16,7 @@ interface MCPDetailProps {
   toolStats: ToolStatistics[] | null;
   mcpStats: MCPStatistics | null;
   timeRange: '24h' | '7d' | '30d' | 'all';
+  createdToolId?: string | null;
 }
 
 export default function MCPDetail({
@@ -26,6 +27,7 @@ export default function MCPDetail({
   toolStats,
   mcpStats,
   timeRange,
+  createdToolId,
 }: MCPDetailProps) {
   const [tools, setTools] = useState<MCPTool[]>(initialTools);
 
@@ -73,7 +75,13 @@ export default function MCPDetail({
         />
       )}
 
-      <ToolsSection mcpId={mcp.id} initialTools={tools} apis={apis} onUpdate={handleToolsUpdate} />
+      <ToolsSection 
+        mcpId={mcp.id} 
+        initialTools={tools} 
+        apis={apis} 
+        onUpdate={handleToolsUpdate}
+        createdToolId={createdToolId}
+      />
     </div>
   );
 }

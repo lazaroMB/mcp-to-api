@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MCPTool } from '@/lib/types/mcp';
 import ToolForm from './tool-form';
 import ToolMappingSection from './tool-mapping-section';
@@ -12,6 +12,7 @@ interface ToolsSectionProps {
   initialTools: MCPTool[];
   apis: API[];
   onUpdate: (tools: MCPTool[]) => void;
+  createdToolId?: string | null;
 }
 
 export default function ToolsSection({
@@ -19,11 +20,30 @@ export default function ToolsSection({
   initialTools,
   apis,
   onUpdate,
+  createdToolId,
 }: ToolsSectionProps) {
   const [tools, setTools] = useState<MCPTool[]>(initialTools);
   const [showForm, setShowForm] = useState(false);
   const [editingTool, setEditingTool] = useState<MCPTool | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // If a tool was just created, show it in edit mode
+  useEffect(() => {
+    if (createdToolId) {
+      const createdTool = tools.find(t => t.id === createdToolId);
+      if (createdTool) {
+        setEditingTool(createdTool);
+        setShowForm(true);
+        // Scroll to the form
+        setTimeout(() => {
+          const formElement = document.querySelector('[data-slot="tool-form"]');
+          if (formElement) {
+            formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    }
+  }, [createdToolId, tools]);
 
   const handleCreate = () => {
     setEditingTool(null);
@@ -102,12 +122,14 @@ export default function ToolsSection({
 
       <div className="p-6">
         {showForm ? (
-          <ToolForm
-            mcpId={mcpId}
-            tool={editingTool}
-            onSuccess={handleFormSuccess}
-            onCancel={handleFormCancel}
-          />
+          <div data-slot="tool-form">
+            <ToolForm
+              mcpId={mcpId}
+              tool={editingTool}
+              onSuccess={handleFormSuccess}
+              onCancel={handleFormCancel}
+            />
+          </div>
         ) : tools.length === 0 ? (
           <p className="text-center text-zinc-600 dark:text-zinc-400">
             No tools configured. Add your first tool to get started.
