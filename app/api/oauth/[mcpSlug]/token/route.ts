@@ -327,6 +327,9 @@ export async function POST(
             );
           }
           
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+          const debugUrl = `${baseUrl}/api/debug/tokens/${mcpSlug}`;
+          
           return NextResponse.json(
             { 
               error: 'invalid_grant', 
