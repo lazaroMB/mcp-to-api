@@ -244,7 +244,18 @@ export default function LearnMorePage() {
       {/* Footer */}
       <footer className="border-t bg-card mt-16">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="flex flex-col items-center justify-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-6">
+              <Link href="/" className="hover:text-foreground transition-colors">
+                Home
+              </Link>
+              <Link href="/blog" className="hover:text-foreground transition-colors">
+                Blog
+              </Link>
+              <Link href="/learn-more" className="hover:text-foreground transition-colors">
+                Learn More
+              </Link>
+            </div>
             <p>© {new Date().getFullYear()} API to MCP. All rights reserved.</p>
           </div>
         </div>
