@@ -328,15 +328,10 @@ export async function POST(
             );
           }
           
-          const baseUrl = getBaseUrl(request);
-          const debugUrl = `${baseUrl}/api/debug/tokens/${mcpSlug}`;
-          
           return NextResponse.json(
             { 
               error: 'invalid_grant', 
               error_description: 'Invalid refresh token: Token not found in database. The refresh token may have expired, been revoked, or never existed. Please obtain a new token by re-authorizing.',
-              hint: 'If you recently generated a new token, the refresh token should be stored. You can check your tokens at the debug endpoint (requires authentication).',
-              debug_endpoint: debugUrl,
             },
             { status: 400 }
           );

@@ -52,8 +52,6 @@ export async function GET(
       // If this is a browser request (has Accept: text/html), show a user-friendly error page
       const acceptHeader = request.headers.get('accept') || '';
       if (acceptHeader.includes('text/html')) {
-        const baseUrl = getBaseUrl(request);
-        const debugUrl = `${baseUrl}/api/oauth/${mcpSlug}/debug`;
         const receivedParams = Object.fromEntries(searchParams.entries());
         
         const errorHtml = `
@@ -69,7 +67,6 @@ export async function GET(
     .received { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: 20px; }
     code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
     pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
-    a { color: #0066cc; }
   </style>
 </head>
 <body>
@@ -104,7 +101,6 @@ export async function GET(
       <li>Check the MCP client logs to see what URL it's constructing</li>
       <li>Verify the client is implementing PKCE (code_challenge generation)</li>
       <li>Ensure the client is including all required parameters</li>
-      <li>See <a href="${debugUrl}" target="_blank">debug endpoint</a> for example authorization URL</li>
     </ul>
     
     <p><strong>Note:</strong> The MCP client should automatically construct this URL after receiving a 401 response from the MCP endpoint. If you're seeing this page, the client's OAuth implementation may need to be updated.</p>
