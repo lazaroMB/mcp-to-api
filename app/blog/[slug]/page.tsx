@@ -334,14 +334,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>{post.author}</span>
-            <span>•</span>
-            <time dateTime={post.publishedAt}>
-              {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
           </div>
         </header>
 

@@ -106,14 +106,6 @@ export default function BlogPage() {
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-4">
                   <span>{post.author}</span>
-                  <span>•</span>
-                  <time dateTime={post.publishedAt}>
-                    {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </time>
                 </div>
                 <Link
                   href={`/blog/${post.slug}`}
