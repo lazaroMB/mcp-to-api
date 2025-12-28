@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { API, APIFormData } from '@/lib/types/api';
 import { requireAuth } from '@/lib/auth/middleware';
+import { parseOpenAPIToAPIs } from '@/lib/utils/openapi-parser';
 
 export async function getAPIs(): Promise<API[]> {
   await requireAuth();
@@ -160,4 +161,73 @@ export async function deleteAPI(id: string): Promise<void> {
   }
 
   revalidatePath('/admin/api');
+}
+
+export interface ImportResult {
+  success: boolean;
+  imported: number;
+  errors: string[];
+}
+
+export async function importOpenAPI(openAPIUrl: string): Promise<ImportResult> {
+  await requireAuth();
+  const supabase = await createClient();
+  
+  const result: ImportResult = {
+    success: true,
+    imported: 0,
+    errors: [],
+  };
+
+  try {
+    // Parse OpenAPI spec
+    const apiFormDataList = await parseOpenAPIToAPIs(openAPIUrl);
+
+    if (apiFormDataList.length === 0) {
+      result.errors.push('No endpoints found in OpenAPI specification');
+      result.success = false;
+      return result;
+    }
+
+    // Insert all APIs
+    for (const formData of apiFormDataList) {
+      try {
+        const { error } = await supabase
+          .from('api')
+          .insert({
+            name: formData.name,
+            description: formData.description || null,
+            method: formData.method,
+            url: formData.url,
+            headers: formData.headers || [],
+            cookies: formData.cookies || [],
+            url_params: formData.url_params || [],
+            payload_schema: formData.payload_schema || null,
+            is_enabled: formData.is_enabled ?? true,
+          });
+
+        if (error) {
+          result.errors.push(`Failed to import "${formData.name}": ${error.message}`);
+        } else {
+          result.imported++;
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        result.errors.push(`Failed to import "${formData.name}": ${errorMessage}`);
+      }
+    }
+
+    if (result.imported > 0) {
+      revalidatePath('/admin/api');
+    }
+
+    if (result.errors.length > 0 && result.imported === 0) {
+      result.success = false;
+    }
+  } catch (error) {
+    result.success = false;
+    result.errors.push(error instanceof Error ? error.message : 'Failed to import OpenAPI specification');
+  }
+
+  return result;
 }
