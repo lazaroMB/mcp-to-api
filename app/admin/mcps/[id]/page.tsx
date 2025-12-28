@@ -14,7 +14,7 @@ export default async function MCPDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ timeRange?: string; apiId?: string }>;
+  searchParams: Promise<{ timeRange?: string; apiId?: string; createdToolId?: string }>;
 }) {
   const { id } = await params;
   const urlParams = await searchParams;
