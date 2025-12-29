@@ -2141,7 +2141,7 @@ Since Cursor may not yet fully support automatic OAuth discovery, you can manual
 
 #### Option 1: Get Token via Web UI
 
-1. Visit: \`http://localhost:3000/oauth-token/{your-mcp-slug}\`
+1. Visit: \`https://api-to-mcp.dev/oauth-token/{your-mcp-slug}\`
 2. Click **Get Token**
 3. Complete the authorization flow:
    - Log in if not already authenticated
@@ -2157,7 +2157,7 @@ Create or edit \`.cursor/mcp.json\` in your project:
 {
   "mcpServers": {
     "your-mcp-slug": {
-      "url": "http://localhost:3000/api/mcp/your-mcp-slug",
+      "url": "https://api-to-mcp.dev/api/mcp/your-mcp-slug",
       "headers": {
         "Authorization": "Bearer YOUR_ACCESS_TOKEN_HERE"
       }
@@ -2180,7 +2180,7 @@ If your client supports automatic OAuth discovery (RFC 9728), configure it witho
 {
   "mcpServers": {
     "your-mcp-slug": {
-      "url": "http://localhost:3000/api/mcp/your-mcp-slug"
+      "url": "https://api-to-mcp.dev/api/mcp/your-mcp-slug"
     }
   }
 }
@@ -2220,7 +2220,7 @@ Clients should automatically:
 - Retry requests without user intervention
 
 Until then, you can manually refresh tokens by:
-1. Visiting the token page again: \`http://localhost:3000/oauth-token/{mcp-slug}\`
+1. Visiting the token page again: \`https://api-to-mcp.dev/oauth-token/{mcp-slug}\`
 2. Getting a new token
 3. Updating your client configuration
 
@@ -2338,7 +2338,7 @@ Client uses access token in \`Authorization: Bearer\` header for all subsequent 
 {
   "mcpServers": {
     "my-private-api": {
-      "url": "http://localhost:3000/api/mcp/my-private-api",
+      "url": "https://api-to-mcp.dev/api/mcp/my-private-api",
       "headers": {
         "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       }
@@ -2353,7 +2353,7 @@ Client uses access token in \`Authorization: Bearer\` header for all subsequent 
 {
   "mcpServers": {
     "my-private-api": {
-      "url": "http://localhost:3000/api/mcp/my-private-api",
+      "url": "https://api-to-mcp.dev/api/mcp/my-private-api",
       "headers": {
         "Authorization": "Bearer YOUR_TOKEN_HERE"
       }
@@ -2367,13 +2367,13 @@ Save to: \`~/Library/Application Support/Claude/claude_desktop_config.json\`
 ## API Endpoints Reference
 
 ### MCP Endpoint
-\`POST http://localhost:3000/api/mcp/{slug}\`
+\`POST https://api-to-mcp.dev/api/mcp/{slug}\`
 
 ### OAuth Endpoints
-- **Authorization**: \`GET http://localhost:3000/api/oauth/{slug}/authorize\`
-- **Token**: \`POST http://localhost:3000/api/oauth/{slug}/token\`
-- **Token Page**: \`GET http://localhost:3000/oauth-token/{slug}\`
-- **Metadata**: \`GET http://localhost:3000/api/oauth/{slug}/.well-known/oauth-protected-resource\`
+- **Authorization**: \`GET https://api-to-mcp.dev/api/oauth/{slug}/authorize\`
+- **Token**: \`POST https://api-to-mcp.dev/api/oauth/{slug}/token\`
+- **Token Page**: \`GET https://api-to-mcp.dev/oauth-token/{slug}\`
+- **Metadata**: \`GET https://api-to-mcp.dev/api/oauth/{slug}/.well-known/oauth-protected-resource\`
 
 ## Conclusion
 

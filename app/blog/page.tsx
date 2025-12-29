@@ -61,12 +61,12 @@ export default function BlogPage() {
             '@type': 'Blog',
             name: 'API to MCP Blog',
             description: 'Learn how to configure MCP servers, create APIs, and understand the MCP to API mapping system.',
-            url: 'https://api-to-mcp.com/blog',
+            url: 'https://api-to-mcp.dev/blog',
             blogPost: posts.map(post => ({
               '@type': 'BlogPosting',
               headline: post.title,
               description: post.description,
-              url: `https://api-to-mcp.com/blog/${post.slug}`,
+              url: `https://api-to-mcp.dev/blog/${post.slug}`,
               datePublished: post.publishedAt,
               author: {
                 '@type': 'Person',

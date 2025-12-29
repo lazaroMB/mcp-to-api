@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
     const searchParams = url.searchParams;
     
     // Try to extract MCP slug from resource parameter
-    // OAuth clients should include resource parameter like: resource=http://localhost:3000/api/mcp/pepe
+    // OAuth clients should include resource parameter like: resource=https://api-to-mcp.dev/api/mcp/pepe
     const resource = searchParams.get('resource');
     
     if (resource) {
       // Extract slug from resource URL
-      // e.g., http://localhost:3000/api/mcp/pepe -> pepe
+      // e.g., https://api-to-mcp.dev/api/mcp/pepe -> pepe
       const match = resource.match(/\/api\/mcp\/([^\/\?]+)/);
       if (match && match[1]) {
         const mcpSlug = match[1];
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'invalid_request',
-        error_description: 'Missing or invalid resource parameter. The resource parameter must be a valid MCP endpoint URL (e.g., http://localhost:3000/api/mcp/[slug])',
+        error_description: 'Missing or invalid resource parameter. The resource parameter must be a valid MCP endpoint URL (e.g., https://api-to-mcp.dev/api/mcp/[slug])',
       },
       { status: 400 }
     );

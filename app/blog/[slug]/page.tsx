@@ -354,7 +354,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               dateModified: post.publishedAt,
               mainEntityOfPage: {
                 '@type': 'WebPage',
-                '@id': `https://api-to-mcp.com/blog/${post.slug}`,
+                '@id': `https://api-to-mcp.dev/blog/${post.slug}`,
               },
             }),
           }}
