@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate message length
-    if (message.trim().length < 10 || message.trim().length > 5000) {
+    if (message.trim().length < 20 || message.trim().length > 500) {
       return NextResponse.json(
-        { error: 'Message must be between 10 and 5000 characters' },
+        { error: 'Message must be between 20 and 500 characters' },
         { status: 400 }
       );
     }

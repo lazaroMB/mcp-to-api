@@ -6,7 +6,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { Dialog, DialogTrigger, DialogHeader, DialogTitle, DialogPanel, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Field, FieldLabel, FieldError, FieldControl } from "@/components/ui/field";
+import { Field, FieldLabel, FieldControl } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
@@ -54,10 +54,10 @@ export function ContactForm() {
     // Message validation
     if (!formData.message.trim()) {
       newErrors.message = "Message is required";
-    } else if (formData.message.trim().length < 10) {
-      newErrors.message = "Message must be at least 10 characters";
-    } else if (formData.message.trim().length > 5000) {
-      newErrors.message = "Message must be less than 5000 characters";
+    } else if (formData.message.trim().length < 20) {
+      newErrors.message = "Message must be at least 20 characters";
+    } else if (formData.message.trim().length > 500) {
+      newErrors.message = "Message must be less than 500 characters";
     }
 
     setErrors(newErrors);
@@ -89,7 +89,22 @@ export function ContactForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to send message");
+        // Try to parse server validation errors and map to form fields
+        const errorMessage = data.error || "Failed to send message";
+        
+        // Map common server error messages to form fields
+        if (errorMessage.includes("Name")) {
+          setErrors({ name: errorMessage });
+        } else if (errorMessage.includes("Email") || errorMessage.includes("email")) {
+          setErrors({ email: errorMessage });
+        } else if (errorMessage.includes("Message") || errorMessage.includes("message")) {
+          setErrors({ message: errorMessage });
+        } else if (errorMessage.includes("required")) {
+          // If it's a general required error, validate again to show field-specific errors
+          validateForm();
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Show success toast
@@ -115,6 +130,45 @@ export function ContactForm() {
     }
   };
 
+  const validateField = (field: keyof ContactFormData) => {
+    const newErrors: Partial<Record<keyof ContactFormData, string>> = { ...errors };
+
+    if (field === "name") {
+      if (!formData.name.trim()) {
+        newErrors.name = "Name is required";
+      } else if (formData.name.trim().length < 2) {
+        newErrors.name = "Name must be at least 2 characters";
+      } else if (formData.name.trim().length > 100) {
+        newErrors.name = "Name must be less than 100 characters";
+      } else {
+        delete newErrors.name;
+      }
+    } else if (field === "email") {
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required";
+      } else {
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i;
+        if (!emailRegex.test(formData.email.trim())) {
+          newErrors.email = "Please enter a valid email address";
+        } else {
+          delete newErrors.email;
+        }
+      }
+    } else if (field === "message") {
+      if (!formData.message.trim()) {
+        newErrors.message = "Message is required";
+      } else if (formData.message.trim().length < 20) {
+        newErrors.message = "Message must be at least 20 characters";
+      } else if (formData.message.trim().length > 500) {
+        newErrors.message = "Message must be less than 500 characters";
+      } else {
+        delete newErrors.message;
+      }
+    }
+
+    setErrors(newErrors);
+  };
+
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -125,6 +179,10 @@ export function ContactForm() {
         return newErrors;
       });
     }
+  };
+
+  const handleBlur = (field: keyof ContactFormData) => {
+    validateField(field);
   };
 
   return (
@@ -180,7 +238,6 @@ export function ContactForm() {
                 <Form onSubmit={handleSubmit}>
                   <Field
                     invalid={!!errors.name}
-                    required
                   >
                     <FieldLabel>Name</FieldLabel>
                     <FieldControl
@@ -190,20 +247,23 @@ export function ContactForm() {
                           type="text"
                           value={formData.name}
                           onChange={(e) => handleInputChange("name", e.target.value)}
+                          onBlur={() => handleBlur("name")}
                           placeholder="Your name"
+                          required
                           aria-invalid={!!errors.name}
                           aria-describedby={errors.name ? "name-error" : undefined}
                         />
                       )}
                     />
                     {errors.name && (
-                      <FieldError id="name-error">{errors.name}</FieldError>
+                      <div id="name-error" className="text-xs text-destructive-foreground">
+                        {errors.name}
+                      </div>
                     )}
                   </Field>
 
                   <Field
                     invalid={!!errors.email}
-                    required
                   >
                     <FieldLabel>Email</FieldLabel>
                     <FieldControl
@@ -213,37 +273,55 @@ export function ContactForm() {
                           type="email"
                           value={formData.email}
                           onChange={(e) => handleInputChange("email", e.target.value)}
+                          onBlur={() => handleBlur("email")}
                           placeholder="your.email@example.com"
+                          required
                           aria-invalid={!!errors.email}
                           aria-describedby={errors.email ? "email-error" : undefined}
                         />
                       )}
                     />
                     {errors.email && (
-                      <FieldError id="email-error">{errors.email}</FieldError>
+                      <div id="email-error" className="text-xs text-destructive-foreground">
+                        {errors.email}
+                      </div>
                     )}
                   </Field>
 
                   <Field
                     invalid={!!errors.message}
-                    required
                   >
-                    <FieldLabel>Message</FieldLabel>
+                    <div className="flex w-full items-center justify-between">
+                      <FieldLabel>Message</FieldLabel>
+                      <span
+                        className={cn(
+                          "text-xs text-muted-foreground",
+                          formData.message.length >= 500 && "text-destructive font-medium"
+                        )}
+                      >
+                        {formData.message.length}/500
+                      </span>
+                    </div>
                     <FieldControl
                       render={(props) => (
                         <Textarea
                           {...props}
                           value={formData.message}
                           onChange={(e) => handleInputChange("message", e.target.value)}
+                          onBlur={() => handleBlur("message")}
                           placeholder="Your message..."
                           rows={6}
+                          required
+                          maxLength={500}
                           aria-invalid={!!errors.message}
                           aria-describedby={errors.message ? "message-error" : undefined}
                         />
                       )}
                     />
                     {errors.message && (
-                      <FieldError id="message-error">{errors.message}</FieldError>
+                      <div id="message-error" className="text-xs text-destructive-foreground">
+                        {errors.message}
+                      </div>
                     )}
                   </Field>
 
