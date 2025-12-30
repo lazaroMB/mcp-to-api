@@ -260,10 +260,50 @@ function AnchoredToasts() {
   );
 }
 
+// Hook to use toast manager
+function useToast() {
+  const manager = Toast.useToastManager();
+  
+  const addToast = (
+    type: "success" | "error" | "info" | "warning" | "loading",
+    title: string,
+    description?: string
+  ) => {
+    // Base UI Toast manager uses the 'add' method
+    // The manager from useToastManager() should have an 'add' method
+    if ('add' in manager && typeof (manager as any).add === 'function') {
+      return (manager as any).add({ type, title, description });
+    }
+    // Fallback: try using the global toastManager
+    if ('add' in toastManager && typeof (toastManager as any).add === 'function') {
+      return (toastManager as any).add({ type, title, description });
+    }
+    console.error('Unable to add toast - manager does not have add method');
+  };
+  
+  return { addToast };
+}
+
+// Helper function to add a toast (for use outside components)
+// This uses the global toastManager instance
+function addToast(
+  type: "success" | "error" | "info" | "warning" | "loading",
+  title: string,
+  description?: string
+) {
+  // Base UI Toast manager should have an 'add' method
+  if ('add' in toastManager && typeof (toastManager as any).add === 'function') {
+    return (toastManager as any).add({ type, title, description });
+  }
+  console.error('Toast manager does not have add method');
+}
+
 export {
   ToastProvider,
   type ToastPosition,
   toastManager,
   AnchoredToastProvider,
   anchoredToastManager,
+  addToast,
+  useToast,
 };
