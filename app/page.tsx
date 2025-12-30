@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ContactForm } from '@/components/contact-form';
 
 export default function Home() {
   return (
@@ -306,9 +305,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* Contact Form */}
-      <ContactForm />
     </div>
   );
 }
